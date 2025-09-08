@@ -185,7 +185,7 @@
 </template>
 
 <script setup lang="ts">
-import useUserStore from "@/stores";
+import useUserStore from "@/stores"; // 引入仓库
 import axios from "axios";
 import { ElMessage } from "element-plus";
 import { inject, onMounted, onUnmounted, ref } from "vue";
@@ -369,7 +369,7 @@ const viewFile = (row: any) => {
   }
 
   // 构建完整的文件URL
-  currentFilePath.value = `/${filePath}`;
+  currentFilePath.value = `${$baseUrl}/${filePath}`;
   currentFileType.value = String(fileType);
   fileDialogVisible.value = true;
 };

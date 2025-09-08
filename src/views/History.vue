@@ -224,7 +224,7 @@
         <el-image
           :src="currentImageUrl"
           fit="contain"
-          style="max-width: 100%; max-height: 500px"
+          style="max-width: 100%; max-height: 700px"
           :preview-src-list="[currentImageUrl]"
         />
       </div>
@@ -233,11 +233,13 @@
 </template>
 
 <script setup lang="ts">
-import TimeSeriesChart from "@/components/TimeSeriesChart.vue";
 import useUserStore from "@/stores"; // 引入仓库
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { inject, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
+import TimeSeriesChart from "../components/TimeSeriesChart.vue";
+
+import { inject } from "vue";
 
 const $baseUrl = inject("$baseUrl");
 

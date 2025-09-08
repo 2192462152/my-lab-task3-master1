@@ -5,7 +5,7 @@
         <h1>冰箱导航</h1>
         <el-button type="primary" @click="showDialog">
           <el-icon :size="15" style="margin-right: 5px">
-            <Plus/>
+            <Plus />
           </el-icon>
           添加冰箱
         </el-button>
@@ -13,9 +13,9 @@
 
       <!-- 机房卡片网络布局 -->
       <div class="room-grid">
-        <el-card 
-          v-for="room in rooms" 
-          :key="room.id" 
+        <el-card
+          v-for="room in rooms"
+          :key="room.id"
           class="room-card"
           :body-style="{ padding: '0px' }"
           shadow="hover"
@@ -34,12 +34,20 @@
                 {{ getRoomStatusText(room) }}
               </el-tag>
             </p>
-            <p class="room-desc">{{ room.remarks || '暂无描述' }}</p>
+            <p class="room-desc">{{ room.remarks || "暂无描述" }}</p>
             <div class="room-actions">
-              <el-button type="primary" size="small" @click.stop="editRoom(room)">
+              <el-button
+                type="primary"
+                size="small"
+                @click.stop="editRoom(room)"
+              >
                 编辑
               </el-button>
-              <el-button type="info" size="small" @click.stop="goToRoomDetail(room)">
+              <el-button
+                type="info"
+                size="small"
+                @click.stop="goToRoomDetail(room)"
+              >
                 详情
               </el-button>
               <el-popconfirm
@@ -61,94 +69,119 @@
       <!-- 分页组件 -->
       <div class="pagination-container">
         <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="total"
-            layout="total, prev, pager, next"
-            @current-change="handleCurrentChange"
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="handleCurrentChange"
         ></el-pagination>
       </div>
     </el-card>
 
     <!-- 功率对比图卡片 -->
-    <el-card class="power-comparison-card" style="margin-bottom: 20px;">
+    <el-card class="power-comparison-card" style="margin-bottom: 20px">
       <template #header>
         <div class="card-header">
           <span>冰箱功率对比分析</span>
-          <el-button type="primary" size="small" @click="refreshPowerData" :loading="powerLoading">
+          <el-button
+            type="primary"
+            size="small"
+            @click="refreshPowerData"
+            :loading="powerLoading"
+          >
             <el-icon><Refresh /></el-icon>
             刷新数据
           </el-button>
         </div>
       </template>
-      
+
       <!-- 统计信息展示 -->
       <div class="statistics-section">
         <div class="stats-row">
-          <div class="stat-item" v-for="fridgeId in ['01', '02', '03']" :key="fridgeId">
+          <div
+            class="stat-item"
+            v-for="fridgeId in ['01', '02', '03']"
+            :key="fridgeId"
+          >
             <h4>{{ fridgeId }}号冰箱</h4>
             <div class="stat-details">
               <div class="stat-detail">
                 <span class="label">最高功率:</span>
-                <span class="value max">{{ statistics[fridgeId]?.maxPower || 0 }} W</span>
+                <span class="value max"
+                  >{{ statistics[fridgeId]?.maxPower || 0 }} W</span
+                >
               </div>
               <div class="stat-detail">
                 <span class="label">最低功率:</span>
-                <span class="value min">{{ statistics[fridgeId]?.minPower || 0 }} W</span>
+                <span class="value min"
+                  >{{ statistics[fridgeId]?.minPower || 0 }} W</span
+                >
               </div>
               <div class="stat-detail">
                 <span class="label">平均功率:</span>
-                <span class="value avg">{{ statistics[fridgeId]?.avgPower || 0 }} W</span>
+                <span class="value avg"
+                  >{{ statistics[fridgeId]?.avgPower || 0 }} W</span
+                >
               </div>
             </div>
           </div>
         </div>
-        
+
         <!-- 平均功率对比 -->
-        <div class="electricity-section" v-if="lowestAvgPowerFridge || highestAvgPowerFridge">
+        <div
+          class="electricity-section"
+          v-if="lowestAvgPowerFridge || highestAvgPowerFridge"
+        >
           <h4>平均功率对比</h4>
           <div class="electricity-row">
             <div class="electricity-item lowest" v-if="lowestAvgPowerFridge">
               <el-icon><TrendCharts /></el-icon>
               <div class="electricity-content">
-                <span>平均功率最低: {{ lowestAvgPowerFridge.fridgeId }}号冰箱 ({{ lowestAvgPowerFridge.avgPower }} W)</span>
+                <span
+                  >平均功率最低: {{ lowestAvgPowerFridge.fridgeId }}号冰箱 ({{
+                    lowestAvgPowerFridge.avgPower
+                  }}
+                  W)</span
+                >
               </div>
             </div>
             <div class="electricity-item highest" v-if="highestAvgPowerFridge">
               <el-icon><TrendCharts /></el-icon>
               <div class="electricity-content">
-                <span>平均功率最高: {{ highestAvgPowerFridge.fridgeId }}号冰箱 ({{ highestAvgPowerFridge.avgPower }} W)</span>
+                <span
+                  >平均功率最高: {{ highestAvgPowerFridge.fridgeId }}号冰箱 ({{
+                    highestAvgPowerFridge.avgPower
+                  }}
+                  W)</span
+                >
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <!-- 使用新的功率对比图表组件 -->
-      <PowerComparisonChart 
-        :powerData="powerData" 
-        :loading="powerLoading" 
-      />
+      <PowerComparisonChart :powerData="powerData" :loading="powerLoading" />
     </el-card>
 
     <!-- 添加/编辑设备对话框 -->
     <el-dialog
-        :title="isEditing ? '编辑冰箱' : '添加冰箱'"
-        v-model="dialogVisible"
-        width="30%"
+      :title="isEditing ? '编辑冰箱' : '添加冰箱'"
+      v-model="dialogVisible"
+      width="30%"
     >
       <el-form :model="form" label-width="100px">
         <el-form-item label="冰箱名称">
-          <el-input v-model="form.device_name" placeholder="请输入冰箱名称"/>
+          <el-input v-model="form.device_name" placeholder="请输入冰箱名称" />
         </el-form-item>
         <el-form-item label="冰箱编号">
-          <el-input v-model="form.number" placeholder="请输入冰箱编号"/>
+          <el-input v-model="form.number" placeholder="请输入冰箱编号" />
         </el-form-item>
         <el-form-item label="描述">
           <el-input
-              v-model="form.remarks"
-              type="textarea"
-              placeholder="请输入冰箱描述"
+            v-model="form.remarks"
+            type="textarea"
+            placeholder="请输入冰箱描述"
           />
         </el-form-item>
       </el-form>
@@ -163,227 +196,228 @@
 </template>
 
 <script setup>
-import {ref, reactive, onMounted, onUnmounted, computed, nextTick} from 'vue'
-import {ElMessage} from 'element-plus'
-import {useRouter} from 'vue-router'
-import {Plus, Refresh, TrendCharts} from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
-import axios from 'axios'
-import PowerComparisonChart from '@/components/PowerComparisonChart.vue'
+import PowerComparisonChart from "@/components/PowerComparisonChart.vue";
+import { Plus, Refresh, TrendCharts } from "@element-plus/icons-vue";
+import axios from "axios";
+import { ElMessage } from "element-plus";
+import { inject, onMounted, onUnmounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const $router = useRouter()
+const $baseUrl = inject("$baseUrl");
+
+const $router = useRouter();
 
 // 响应式状态
-const rooms = ref([])
-const total = ref(0) // 总数据条数
-const currentPage = ref(1) // 当前页码
-const pageSize = ref(9) // 默认最大条数
+const rooms = ref([]);
+const total = ref(0); // 总数据条数
+const currentPage = ref(1); // 当前页码
+const pageSize = ref(9); // 默认最大条数
 const form = reactive({
-  device_name: '',
-  number: '',
-  remarks: ''
-})
-const isEditing = ref(false)
-const editingId = ref(null)
-const dialogVisible = ref(false)
+  device_name: "",
+  number: "",
+  remarks: "",
+});
+const isEditing = ref(false);
+const editingId = ref(null);
+const dialogVisible = ref(false);
 
 // 功率对比相关状态
-const powerData = ref({})
-const statistics = ref({})
-const powerLoading = ref(false)
-let ws = null
+const powerData = ref({});
+const statistics = ref({});
+const powerLoading = ref(false);
+let ws = null;
 
 // 平均功率最低和最高的冰箱
-const lowestAvgPowerFridge = ref(null)
-const highestAvgPowerFridge = ref(null)
+const lowestAvgPowerFridge = ref(null);
+const highestAvgPowerFridge = ref(null);
 
 // 初始化WebSocket连接
 const initWebSocket = () => {
   try {
-    ws = new WebSocket('ws://localhost:8080');
+    ws = new WebSocket("ws://localhost:8080");
 
     ws.onopen = () => {
-      console.log('WebSocket连接已建立')
+      console.log("WebSocket连接已建立");
     };
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log('收到消息:', message);
+        console.log("收到消息:", message);
 
         // 可以移除 electricityUpdate 相关的处理，因为不再需要实时耗电量数据
       } catch (error) {
-        console.error('处理WebSocket消息失败:', error);
+        console.error("处理WebSocket消息失败:", error);
       }
     };
 
     ws.onclose = () => {
-      console.log('WebSocket连接已关闭')
+      console.log("WebSocket连接已关闭");
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket连接错误:', error);
+      console.error("WebSocket连接错误:", error);
     };
   } catch (error) {
-    console.error('初始化WebSocket连接失败:', error);
+    console.error("初始化WebSocket连接失败:", error);
   }
 };
 
 // 获取功率对比数据
 const fetchPowerData = async () => {
-  powerLoading.value = true
+  powerLoading.value = true;
   try {
-    const response = await axios.get('http://localhost:3000/api/power-comparison', {
+    const response = await axios.get($baseUrl + "/api/power-comparison", {
       params: {
-        limit: 1000 // 获取最近1000条数据
-      }
-    })
-    
+        limit: 1000, // 获取最近1000条数据
+      },
+    });
+
     if (response.data) {
-      powerData.value = response.data.data
-      statistics.value = response.data.statistics
-      lowestAvgPowerFridge.value = response.data.lowestAvgPowerFridge
-      highestAvgPowerFridge.value = response.data.highestAvgPowerFridge
+      powerData.value = response.data.data;
+      statistics.value = response.data.statistics;
+      lowestAvgPowerFridge.value = response.data.lowestAvgPowerFridge;
+      highestAvgPowerFridge.value = response.data.highestAvgPowerFridge;
     }
   } catch (error) {
-    console.error('获取功率对比数据失败:', error)
-    ElMessage.error('获取功率对比数据失败')
+    console.error("获取功率对比数据失败:", error);
+    ElMessage.error("获取功率对比数据失败");
   } finally {
-    powerLoading.value = false
+    powerLoading.value = false;
   }
-}
+};
 
 // 刷新功率数据
 const refreshPowerData = () => {
-  fetchPowerData()
-}
+  fetchPowerData();
+};
 
 //格式化时间
 const formatDateTime = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
 
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 // 获取机房状态类型
 const getRoomStatusType = (room) => {
   // 这里可以根据实际业务逻辑判断机房状态
-  return 'success' // 暂时都显示为正常状态
-}
+  return "success"; // 暂时都显示为正常状态
+};
 
 // 获取机房状态文本
 const getRoomStatusText = (room) => {
-  return '运行正常'
-}
+  return "运行正常";
+};
 
 // 跳转到机房详情页面
 const goToRoomDetail = (room) => {
   $router.push({
-    name: 'RoomDetail',
-    params: { roomId: room.number }
-  })
-}
+    name: "RoomDetail",
+    params: { roomId: room.number },
+  });
+};
 
 // 显示对话框
 const showDialog = () => {
-  isEditing.value = false
-  resetForm()
-  dialogVisible.value = true
-}
+  isEditing.value = false;
+  resetForm();
+  dialogVisible.value = true;
+};
 
 // 获取设备列表
 const fetchRooms = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/devices', {
+    const response = await axios.get($baseUrl + "/api/devices", {
       params: {
         page: currentPage.value,
         pageSize: pageSize.value,
-      }
-    })
-    rooms.value = response.data.data
-    total.value = response.data.total
+      },
+    });
+    rooms.value = response.data.data;
+    total.value = response.data.total;
   } catch (error) {
-    ElMessage.error('获取设备列表失败')
-    console.error('获取设备失败:', error)
+    ElMessage.error("获取设备列表失败");
+    console.error("获取设备失败:", error);
   }
-}
+};
 
 // 处理页码的变化
 const handleCurrentChange = (current) => {
-  currentPage.value = current
-  fetchRooms()
-}
+  currentPage.value = current;
+  fetchRooms();
+};
 
 // 提交表单
 const submitForm = async () => {
   try {
     if (isEditing.value) {
-      await axios.put(`http://localhost:3000/api/devices/${editingId.value}`, form)
-      ElMessage.success('更新成功')
+      await axios.put($baseUrl + `/api/devices/${editingId.value}`, form);
+      ElMessage.success("更新成功");
     } else {
-      await axios.post('http://localhost:3000/api/devices', form)
-      ElMessage.success('添加成功')
+      await axios.post($baseUrl + "/api/devices", form);
+      ElMessage.success("添加成功");
     }
-    dialogVisible.value = false
-    resetForm()
-    await fetchRooms()
+    dialogVisible.value = false;
+    resetForm();
+    await fetchRooms();
   } catch (error) {
-    ElMessage.error(isEditing.value ? '更新失败' : '添加失败')
-    console.error('提交表单失败:', error)
+    ElMessage.error(isEditing.value ? "更新失败" : "添加失败");
+    console.error("提交表单失败:", error);
   }
-}
+};
 
 // 删除设备
 const deleteRoom = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/api/devices/${id}`)
-    ElMessage.success('删除成功')
-    await fetchRooms()
+    await axios.delete($baseUrl + `/api/devices/${id}`);
+    ElMessage.success("删除成功");
+    await fetchRooms();
   } catch (error) {
-    ElMessage.error('删除失败')
-    console.error('删除冰箱失败:', error)
+    ElMessage.error("删除失败");
+    console.error("删除冰箱失败:", error);
   }
-}
+};
 
 // 编辑设备
 const editRoom = (room) => {
-  form.device_name = room.device_name
-  form.number = room.number
-  form.remarks = room.remarks
-  editingId.value = room.id
-  isEditing.value = true
-  dialogVisible.value = true
-}
+  form.device_name = room.device_name;
+  form.number = room.number;
+  form.remarks = room.remarks;
+  editingId.value = room.id;
+  isEditing.value = true;
+  dialogVisible.value = true;
+};
 
 // 重置表单
 const resetForm = () => {
-  form.device_name = ''
-  form.number = ''
-  form.remarks = ''
-  isEditing.value = false
-  editingId.value = null
-}
+  form.device_name = "";
+  form.number = "";
+  form.remarks = "";
+  isEditing.value = false;
+  editingId.value = null;
+};
 
 // 组件挂载时获取数据
 onMounted(() => {
-  fetchRooms()
-  initWebSocket()
-  fetchPowerData()
-})
+  fetchRooms();
+  initWebSocket();
+  fetchPowerData();
+});
 
 // 组件卸载时清理资源
 onUnmounted(() => {
   if (ws) {
-    ws.close()
+    ws.close();
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>
@@ -519,15 +553,15 @@ onUnmounted(() => {
                 font-size: 14px;
 
                 &.max {
-                  color: #F56C6C;
+                  color: #f56c6c;
                 }
 
                 &.min {
-                  color: #67C23A;
+                  color: #67c23a;
                 }
 
                 &.avg {
-                  color: #409EFF;
+                  color: #409eff;
                 }
               }
             }
@@ -536,7 +570,7 @@ onUnmounted(() => {
       }
 
       .electricity-section {
-        border-top: 1px solid #EBEEF5;
+        border-top: 1px solid #ebeef5;
         padding-top: 15px;
 
         h4 {
@@ -561,7 +595,7 @@ onUnmounted(() => {
               display: flex;
               flex-direction: column;
               gap: 4px;
-              
+
               .avg-power-info {
                 font-size: 12px;
                 opacity: 0.8;
@@ -571,12 +605,12 @@ onUnmounted(() => {
 
             &.lowest {
               background-color: #f0f9ff;
-              color: #67C23A;
+              color: #67c23a;
             }
 
             &.highest {
               background-color: #fef0f0;
-              color: #F56C6C;
+              color: #f56c6c;
             }
           }
         }

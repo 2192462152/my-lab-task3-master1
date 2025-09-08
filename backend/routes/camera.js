@@ -21,21 +21,21 @@ const serverConfig = {
 
 // 摄像头配置
 const cameraConfig = {
-  '192.168.1.13:554': {
+  '192.168.1.101:554': {
     id: 'camera1',
     name: '摄像头1',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.13:554/Streaming/Channels/101',
+    rtspUrl: 'rtsp://admin:admin@192.168.1.101:554/Streaming/Channels/101',
     httpPort: 7001
   },
   '192.168.1.14:554': {
-    id: 'camera2', 
+    id: 'camera2',
     name: '摄像头2',
     rtspUrl: 'rtsp://admin:admin@192.168.1.14:554/Streaming/Channels/101',
     httpPort: 7002
   },
   '192.168.1.15:554': {
     id: 'camera3',
-    name: '摄像头3', 
+    name: '摄像头3',
     rtspUrl: 'rtsp://admin:admin@192.168.1.15:554/Streaming/Channels/101',
     httpPort: 7003
   }
@@ -79,7 +79,7 @@ const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
 
     const ffmpeg = spawn('ffmpeg', ffmpegArgs);
     activeStreams.set(cameraId, ffmpeg);
-    
+
     // 只在非重启时重置重启计数器
     if (!isRestart) {
       restartCounters.delete(cameraId);
@@ -139,7 +139,7 @@ const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
           clientConnections.set(cameraId, newConnections);
           console.log(`客户端断开连接: ${cameraId}, 剩余连接数: ${newConnections}`);
           ffmpeg.stdout.removeListener('data', dataHandler);
-          
+
           // 如果没有客户端连接了，延迟停止FFmpeg进程
           if (newConnections === 0) {
             setTimeout(() => {
@@ -161,7 +161,7 @@ const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
           const newConnections = Math.max(0, connections - 1);
           clientConnections.set(cameraId, newConnections);
           ffmpeg.stdout.removeListener('data', dataHandler);
-          
+
           // 如果没有客户端连接了，延迟停止FFmpeg进程
           if (newConnections === 0) {
             setTimeout(() => {
@@ -260,12 +260,12 @@ const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
     ffmpeg.on('close', (code) => {
       console.log(`FFmpeg进程 ${cameraId} 退出，代码: ${code}`);
       activeStreams.delete(cameraId);
-      
+
       // 检查是否有客户端连接和重启次数
       const hasClients = (clientConnections.get(cameraId) || 0) > 0;
       const restartCount = restartCounters.get(cameraId) || 0;
       const maxRestarts = 3; // 最大重启次数
-      
+
       // 如果是异常退出且有客户端连接且未超过重启限制，尝试重启
       if (code !== 0 && code !== null && hasClients && restartCount < maxRestarts) {
         restartCounters.set(cameraId, restartCount + 1);
@@ -359,7 +359,7 @@ router.get('/cameras', async (ctx) => {
 // 启动摄像头流
 router.post('/camera/:cameraAddress/start', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -389,8 +389,8 @@ router.post('/camera/:cameraAddress/start', async (ctx) => {
     };
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { 
-      error: '启动摄像头流失败: ' + error.message 
+    ctx.body = {
+      error: '启动摄像头流失败: ' + error.message
     };
   }
 });
@@ -398,7 +398,7 @@ router.post('/camera/:cameraAddress/start', async (ctx) => {
 // 停止摄像头流
 router.post('/camera/:cameraAddress/stop', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -415,8 +415,8 @@ router.post('/camera/:cameraAddress/stop', async (ctx) => {
     };
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { 
-      error: '停止摄像头流失败: ' + error.message 
+    ctx.body = {
+      error: '停止摄像头流失败: ' + error.message
     };
   }
 });
@@ -424,7 +424,7 @@ router.post('/camera/:cameraAddress/stop', async (ctx) => {
 // 切换摄像头（停止其他，启动指定的）
 router.post('/camera/:cameraAddress/switch', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -453,8 +453,8 @@ router.post('/camera/:cameraAddress/switch', async (ctx) => {
     };
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { 
-      error: '切换摄像头失败: ' + error.message 
+    ctx.body = {
+      error: '切换摄像头失败: ' + error.message
     };
   }
 });
@@ -463,7 +463,7 @@ router.post('/camera/:cameraAddress/switch', async (ctx) => {
 router.post('/cameras/stop-all', async (ctx) => {
   try {
     let stoppedCount = 0;
-    
+
     Object.keys(cameraConfig).forEach(cameraAddress => {
       if (stopSingleCameraStream(cameraAddress)) {
         stoppedCount++;
@@ -476,8 +476,8 @@ router.post('/cameras/stop-all', async (ctx) => {
     };
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { 
-      error: '停止所有摄像头流失败: ' + error.message 
+    ctx.body = {
+      error: '停止所有摄像头流失败: ' + error.message
     };
   }
 });
@@ -485,7 +485,7 @@ router.post('/cameras/stop-all', async (ctx) => {
 // 获取单个摄像头信息
 router.get('/camera/:cameraAddress', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -516,7 +516,7 @@ router.get('/camera/:cameraAddress', async (ctx) => {
 // 截图功能 **
 router.post('/camera/:cameraAddress/capture', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -590,8 +590,8 @@ router.post('/camera/:cameraAddress/capture', async (ctx) => {
     };
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { 
-      error: '截图失败: ' + error.message 
+    ctx.body = {
+      error: '截图失败: ' + error.message
     };
   }
 });
@@ -599,7 +599,7 @@ router.post('/camera/:cameraAddress/capture', async (ctx) => {
 // 健康检查接口
 router.get('/camera/:cameraAddress/health', async (ctx) => {
   const { cameraAddress } = ctx.params;
-  
+
   try {
     const config = cameraConfig[cameraAddress];
     if (!config) {
@@ -640,7 +640,7 @@ const cleanup = () => {
       console.error(`清理流失败 ${key}:`, error);
     }
   });
-  
+
   // 清理所有计数器和映射
   activeStreams.clear();
   clientConnections.clear();
