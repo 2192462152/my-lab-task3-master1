@@ -14,7 +14,7 @@ router.post('/operation-log', async (ctx) => {
 
     try {
         const operation_time = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
-
+        
         const [result] = await connection.promise().query(
             `INSERT INTO t_operation_log 
             (operation_type, target_name, old_value, new_value, operation_time, status) 
@@ -84,7 +84,7 @@ router.get('/operation-logs', async (ctx) => {
     try {
         const [countResults] = await connection.promise().query(countQuery, countParams);
         const [results] = await connection.promise().query(dataQuery, dataParams);
-
+        
         ctx.body = {
             total: countResults[0].total,
             data: results

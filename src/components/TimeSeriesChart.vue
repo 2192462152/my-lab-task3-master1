@@ -4,6 +4,8 @@
       <el-select v-model="chartType" placeholder="请选择图表类型" @change="updateChart">
         <el-option label="柱状图" value="bar" />
         <el-option label="曲线图" value="line" />
+        <el-option label="散点图" value="scatter" />
+        <el-option label="面积图" value="area" />
       </el-select>
     </div>
     <div ref="chartRef" class="chart" :style="{ display: data && data.length > 0 ? 'block' : 'none' }"></div>
@@ -92,11 +94,12 @@ const updateChart = () => {
       containLabel: true
     },
     xAxis: {
-      type: 'category',
-      data: times,
-      axisLabel: {
+      type: chartType.value === 'scatter' ? 'value' : 'category',
+      data: chartType.value === 'scatter' ? null : times,
+      axisLabel: chartType.value === 'scatter' ? null : {
         rotate: 45
-      }
+      },
+      name: chartType.value === 'scatter' ? '时间索引' : ''
     },
     yAxis: {
       type: 'value',
@@ -106,11 +109,53 @@ const updateChart = () => {
         }
       }
     },
-    series: props.header.map((item, index) => ({
+    series: generateSeries()
+  }
+
+  // 使用 notMerge: true 强制替换配置，确保样式完全更新
+  chart.setOption(option, true)
+}
+
+// 生成系列数据
+const generateSeries = () => {
+  const times = props.data.map(item => item.c_time).reverse()
+  
+  if (chartType.value === 'scatter') {
+    // 散点图：每个指标作为一个系列
+    return props.header.map((item, index) => ({
+      name: item,
+      type: 'scatter',
+      data: props.data.map((d, dataIndex) => [dataIndex, parseFloat(d[item]) || 0]).reverse(),
+      symbolSize: 8,
+      label: {
+        show: false
+      }
+    }))
+  } else if (chartType.value === 'area') {
+    // 面积图：基于曲线图添加面积填充
+    return props.header.map((item, index) => ({
+      name: item,
+      type: 'line',
+      smooth: true,
+      data: props.data.map(d => parseFloat(d[item]) || 0).reverse(),
+      areaStyle: {
+        opacity: 0.3
+      },
+      label: {
+        show: true,
+        formatter: function(params) {
+          return params.value + props.units[index]
+        }
+      }
+    }))
+  } else {
+    // 柱状图和曲线图
+    return props.header.map((item, index) => ({
       name: item,
       type: chartType.value,
-      smooth:true,
-      data: props.data.map(d => d[item]).reverse(),
+      smooth: chartType.value === 'line',
+      data: props.data.map(d => parseFloat(d[item]) || 0).reverse(),
+      areaStyle: null, // 明确清除面积样式
       label: {
         show: true,
         formatter: function(params) {
@@ -119,8 +164,6 @@ const updateChart = () => {
       }
     }))
   }
-
-  chart.setOption(option)
 }
 
 // 监听数据变化

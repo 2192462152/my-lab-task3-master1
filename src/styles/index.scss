@@ -1,5 +1,5 @@
 //引入清楚默认样式
-@use "./reset.scss";
+@import "./reset.scss";
 
 //滚动条外观设置
 ::-webkit-scrollbar {
@@ -12,6 +12,6 @@
 
 ::-webkit-scrollbar-thumb {
   width: 10px;
-  background-color: yellow;
+  background-color:  yellow;
   border-radius: 10px;
 }

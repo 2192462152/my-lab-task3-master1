@@ -21,22 +21,22 @@ const serverConfig = {
 
 // 摄像头配置
 const cameraConfig = {
-  '192.168.1.110:554': {
+  '192.168.1.13:554': {
     id: 'camera1',
     name: '摄像头1',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.110:554/Streaming/Channels/101',
+    rtspUrl: 'rtsp://admin:admin@192.168.1.13:554/Streaming/Channels/101',
     httpPort: 7001
   },
-  '192.168.1.111:554': {
+  '192.168.1.14:554': {
     id: 'camera2', 
     name: '摄像头2',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.111:554/Streaming/Channels/101',
+    rtspUrl: 'rtsp://admin:admin@192.168.1.14:554/Streaming/Channels/101',
     httpPort: 7002
   },
-  '192.168.1.112:554': {
+  '192.168.1.15:554': {
     id: 'camera3',
     name: '摄像头3', 
-    rtspUrl: 'rtsp://admin:admin@192.168.1.112:554/Streaming/Channels/101',
+    rtspUrl: 'rtsp://admin:admin@192.168.1.15:554/Streaming/Channels/101',
     httpPort: 7003
   }
 };

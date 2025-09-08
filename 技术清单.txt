@@ -1,0 +1,51 @@
+前端：
+——UI框架：Element Plus
+——路由：Vue Router 
+——图表：ECharts
+——样式：SCSS
+——构建：Vite
+
+后端：
+——数据库：MySQL
+——视频流：FFmpeg
+——文件处理：Multer
+——跨域：@koa/cors
+——中间件：koa-bodyparser, koa-static
+
+项目结构：
+├── src/                    # 前端
+│   ├── views/             # 页面组件
+│   ├── components/        # 组件
+│   ├── router/            # 路由配置
+│   └── styles/            # 样式
+├── backend/               # 后端API
+│   ├── routes/            # API路由
+│   └── server.js          # 入口
+└── package.json          # 依赖配置
+
+实时监控 (src/views/RoomDetail.vue)：
+视频流: FFmpeg RTSP转HTTP MJPEG
+截图功能: FFmpeg命令行截图
+传感器数据: 实时温湿度等数据展示
+
+自动控制系统 (backend/routes/autoControl.js)：
+
+数据库：
+t_behavior_data           # AI识别结果表
+t_behavior_field_mapper  # AI识别结果字段映射表
+t_data                   # 传感器数据表
+t_field_mapper           # 传感器数据字段映射表
+t_device                 # 设备表
+t_direct_config          # 指令配置表
+t_direct                 # 指令值表
+t_error_msg              # 错误信息表
+t_operation_log          # 操作日志表
+
+运行项目：
+# 前端 (项目根目录)
+npm run dev
+# 后端 (backend目录)
+cd backend
+node server.js
+
+

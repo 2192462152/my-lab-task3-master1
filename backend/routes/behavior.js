@@ -350,7 +350,7 @@ module.exports = router;
 //             INSERT INTO t_behavior_data (d_no, field1, field2, c_time) 
 //             VALUES (?, ?, ?, ?)
 //         `;
-
+        
 //         await connection.promise().query(insertSql, [
 //             sceneId,
 //             relativePath,
@@ -378,3 +378,238 @@ module.exports = router;
 //         ctx.body = { error: error.message };
 //     }
 // });
+
+// 用户行为数据(实时数据接口)
+router.get('/behaviorData1', async (ctx) => {
+    const { sceneId } = ctx.query;
+    
+    try {
+        const [result] = await connection.promise().query('select f_name,db_name,unit from t_behavior_field_mapper');
+
+        const header = result.map(row => row.f_name);
+        const fields = result.map(field => field.db_name).join(',');
+        const units = result.map(row => row.unit);
+
+        let whereClause = '';
+        const params = [];
+
+        // 添加场景ID筛选条件
+        if (sceneId) {
+            whereClause = ' where d_no = ?';
+            params.push(sceneId);
+        }
+
+        const [dataResult] = await connection.promise().query(`select d_no, ${fields}, c_time, is_saved from t_behavior_data${whereClause} order by c_time desc limit 1`, params);
+
+        const newResult = dataResult.map(item => {
+            const newObj = { d_no: item.d_no };
+            const dbFields = fields.split(',');
+            dbFields.forEach((dbField, index) => {
+                newObj[header[index]] = item[dbField];
+            });
+            newObj['创建时间'] = new Date(new Date(item.c_time).getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+            newObj['is_saved'] = item['is_saved'];
+            return newObj;
+        });
+
+        ctx.body = {
+            header,
+            units,
+            data: newResult,
+        };
+    } catch (error) {
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
+// 历史数据接口
+router.get('/behaviorData', async (ctx) => {
+    const { startTime, endTime, sceneId, page = 1, pageSize = 5 } = ctx.query;
+    const offset = (page - 1) * pageSize;
+
+    try {
+        const [result] = await connection.promise().query('select f_name,db_name,unit from t_behavior_field_mapper');
+
+        const fields = result.map(item => item.db_name).join(',');
+        const units = result.map(row => row.unit);
+        const header = result.map(row => row.f_name);
+
+        let whereClause = '';
+        const params = [];
+
+        // 添加筛选条件
+        const conditions = [];
+        
+        // 时间筛选条件
+        if (startTime && endTime) {
+            conditions.push('c_time between ? and ?');
+            params.push(startTime, endTime);
+        } else if (startTime) {
+            conditions.push('c_time >= ?');
+            params.push(startTime);
+        } else if (endTime) {
+            conditions.push('c_time <= ?');
+            params.push(endTime);
+        }
+
+        // 场景ID筛选条件
+        if (sceneId) {
+            conditions.push('d_no = ?');
+            params.push(sceneId);
+        }
+
+        if (conditions.length > 0) {
+            whereClause = ' where ' + conditions.join(' and ');
+        }
+
+        // 查询总记录数
+        const countSql = `SELECT COUNT(*) as total FROM t_behavior_data ${whereClause}`;
+
+        const [countResult] = await connection.promise().query(countSql, params);
+        const total = countResult[0].total;
+
+        // 查询分页数据
+        let sql = `select ${fields}, DATE_FORMAT(c_time, '%Y-%m-%d %H:%i:%s') as c_time, d_no, is_saved, id 
+        from t_behavior_data ${whereClause} 
+        order by DATE_FORMAT(c_time, '%Y-%m-%d %H:%i:%s') desc 
+        limit ? offset ?`;
+        const queryParams = [...params, parseInt(pageSize), offset];
+
+        const [dataResult] = await connection.promise().query(sql, queryParams);
+
+        const newResult = dataResult.map(item => {
+            const newObj = {
+                id: item.id,
+                d_no: item.d_no,
+                is_saved: item.is_saved,
+            };
+            Object.keys(item).forEach((key, index) => {
+                if (key !== 'c_time' && key !== 'd_no' && key !== 'is_saved' && key !== 'id') {
+                    newObj[header[index]] = item[key];
+                }
+            });
+            newObj['c_time'] = item['c_time'];
+            return newObj;
+        });
+
+        ctx.body = {
+            header,
+            units,
+            data: newResult,
+            total: total
+        };
+    } catch (error) {
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
+// 添加AI检测结果到行为数据表
+router.post('/behaviorData/add', async (ctx) => {
+    const { d_no, originalImage, processedImage, detectionCount, results } = ctx.request.body;
+    const c_time = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+
+    try {
+        // 生成唯一文件名
+        const timestamp = Date.now();
+        const originalImageName = `original_${timestamp}_${d_no}.jpg`;
+        const processedImageName = `processed_${timestamp}_${d_no}.jpg`;
+        
+        // 保存原始图像
+        let originalImagePath = '';
+        if (originalImage) {
+            const originalImageBuffer = Buffer.from(originalImage.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            const originalImageFullPath = path.join(aiImagesDir, originalImageName);
+            fs.writeFileSync(originalImageFullPath, originalImageBuffer);
+            originalImagePath = `static/ai-detection/${originalImageName}`;
+        }
+        
+        // 保存处理后图像
+        let processedImagePath = '';
+        if (processedImage) {
+            const processedImageBuffer = Buffer.from(processedImage.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            const processedImageFullPath = path.join(aiImagesDir, processedImageName);
+            fs.writeFileSync(processedImageFullPath, processedImageBuffer);
+            processedImagePath = `static/ai-detection/${processedImageName}`;
+        }
+        
+        // 插入数据到t_behavior_data表（存储文件路径而不是base64数据）
+        const [insertResult] = await connection.promise().query(
+            'INSERT INTO t_behavior_data (d_no, field1, field2, field3, field4, c_time) VALUES (?, ?, ?, ?, ?, ?)',
+            [d_no, originalImagePath, processedImagePath, detectionCount, JSON.stringify(results), c_time]
+        );
+        
+        ctx.body = {
+            success: true,
+            id: insertResult.insertId,
+            message: 'AI检测结果保存成功',
+            data: {
+                originalImagePath,
+                processedImagePath
+            }
+        };
+    } catch (error) {
+        console.error('保存AI检测结果失败:', error);
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
+// 删除行为数据记录
+router.delete('/behaviorData/:id', async (ctx) => {
+    const { id } = ctx.params;
+    
+    try {
+        // 先获取记录信息，以便删除对应的图片文件
+        const [rows] = await connection.promise().query('SELECT field1, field2 FROM t_behavior_data WHERE id = ?', [id]);
+        
+        if (rows.length > 0) {
+            const record = rows[0];
+            
+            // 删除原始图片文件
+            if (record.field1) {
+                const originalImagePath = path.join(__dirname, '..', record.field1);
+                if (fs.existsSync(originalImagePath)) {
+                    fs.unlinkSync(originalImagePath);
+                }
+            }
+            
+            // 删除处理后图片文件
+            if (record.field2) {
+                const processedImagePath = path.join(__dirname, '..', record.field2);
+                if (fs.existsSync(processedImagePath)) {
+                    fs.unlinkSync(processedImagePath);
+                }
+            }
+        }
+        
+        // 删除数据库记录
+        await connection.promise().query('DELETE FROM t_behavior_data WHERE id = ?', [id]);
+        
+        ctx.body = {
+            success: true,
+            message: '删除成功'
+        };
+    } catch (error) {
+        console.error('删除AI检测记录失败:', error);
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
+// 获取所有场景ID列表
+router.get('/sceneIds', async (ctx) => {
+    try {
+        const [result] = await connection.promise().query('SELECT * FROM t_device');
+        
+        ctx.body = {
+            data: result
+        };
+    } catch (error) {
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
+module.exports = router;

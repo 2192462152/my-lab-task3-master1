@@ -14,8 +14,9 @@ const behaviorDataRouter = require('./routes/behavior');
 const mqttRouter = require('./routes/mqtt');
 const operationLogRouter = require('./routes/operationLog');
 const cameraRouter = require('./routes/camera'); // 新增摄像头路由
-const WebSocket = require('ws');
+const autoControlRouter = require('./routes/autoControl'); // 新增自动控制路由
 
+const WebSocket = require('ws');
 
 // WebSocket管理器
 class WebSocketManager {
@@ -80,6 +81,7 @@ router.use('/api', behaviorDataRouter.routes(), behaviorDataRouter.allowedMethod
 router.use('/api', mqttRouter.routes(), mqttRouter.allowedMethods());
 router.use('/api', operationLogRouter.routes(), operationLogRouter.allowedMethods());
 router.use('/api', cameraRouter.routes(), cameraRouter.allowedMethods()); // 新增摄像头路由
+router.use('/api/auto-control', autoControlRouter.routes(), autoControlRouter.allowedMethods()); // 新增自动控制路由
 
 app.use(router.routes()).use(router.allowedMethods());
 

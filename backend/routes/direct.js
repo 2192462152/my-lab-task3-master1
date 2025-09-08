@@ -43,8 +43,8 @@ router.get('/config', async (ctx) => {
 });
 
 router.put('/direct/:id', async (ctx) => {
-    const { id } = ctx.params;
-    const { value } = ctx.request.body;
+    const {id} = ctx.params;
+    const {value} = ctx.request.body;
 
     try {
         await connection.promise().query(
@@ -56,7 +56,7 @@ router.put('/direct/:id', async (ctx) => {
         };
     } catch (error) {
         ctx.status = 500;
-        ctx.body = { error: error.message };
+        ctx.body = {error: error.message};
     }
 });
 

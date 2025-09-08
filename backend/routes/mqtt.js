@@ -53,7 +53,7 @@ class DeviceHeartbeatMonitor {
     }
 
     backupDirect(topic, message) {
-        this.backupQueue.push({ topic, message });
+        this.backupQueue.push({topic, message});
         console.log(`物理层心跳丢失，指令已备份, 当前备份队列长度:`, this.backupQueue.length);
     }
 
@@ -78,7 +78,7 @@ class DirectQueue {
     }
 
     addDirect(topic, message) {
-        this.queue.push({ topic, message })
+        this.queue.push({topic, message})
         // console.log('当前指令列队：',this.queue)
         this.processQueue()
     }
@@ -105,7 +105,7 @@ class DirectQueue {
 
             // 发送成功，从队列中移除
             this.queue.shift()
-            console.log('指令发送成功：', direct)
+            console.log('指令发送成功：',direct)
         } catch (error) {
             console.log('指令发送失败：', error)
         } finally {
@@ -141,7 +141,7 @@ const directQueue = new DirectQueue();
 let heartbeatTimer = null
 
 // 与mqtt服务器创建连接，心跳设置60s
-const client = mqtt.connect('mqtt://192.168.1.101:1883', {
+const client = mqtt.connect('mqtt://192.168.1.10:1883', {
     keepalive: 60,
     reconnectPeriod: 5000, // 自动重连间隔(默认1秒)
 });
@@ -177,18 +177,18 @@ client.on('connect', () => {
     });
 
     // 向物理层发送心跳
-    // heartbeatTimer = setInterval(() => {
-    //     const heartbeatMessage = {
-    //         status: 'alive',
-    //     }
-    //     client.publish('heartbeat', JSON.stringify(heartbeatMessage), (err)=>{
-    //         if (err) {
-    //             console.error('发送心跳失败：', err)
-    //         } else {
-    //             console.log('发送心跳成功')
-    //         }
-    //     })
-    // }, 3000) // 3秒发送一次心跳
+    heartbeatTimer = setInterval(() => {
+        const heartbeatMessage = {
+            status: 'alive',
+        }
+        client.publish('heartbeat', JSON.stringify(heartbeatMessage), (err)=>{
+            if (err) {
+                console.error('发送心跳失败：', err)
+            } else {
+                // console.log('发送心跳成功')
+            }
+        })
+    }, 3000) // 3秒发送一次心跳
 
     // 开始处理队列中的指令
     directQueue.processQueue();
@@ -215,7 +215,9 @@ client.on('message', async (topic, message) => {
                 // data_type: sensorData.data_type || null,
                 field1: null,
                 field2: null,
-                field3: null
+                field3: null,
+                field4: null,
+                field5: null,
                 // field3: null,
             };
 
@@ -231,13 +233,15 @@ client.on('message', async (topic, message) => {
             });
 
             // 执行SQL插入
-            const sql = `INSERT INTO t_data(d_no, field1, field2, field3, c_time)
-                         VALUES (?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO t_data(d_no, field1, field2, field3, field4, field5, c_time)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)`;
             const values = [
                 dbValues.d_no,
                 dbValues.field1,
                 dbValues.field2,
                 dbValues.field3,
+                dbValues.field4,
+                dbValues.field5,
                 dbValues.c_time,
                 // dbValues.data_type
             ];
@@ -255,10 +259,25 @@ client.on('message', async (topic, message) => {
                         field1: dbValues.field1,
                         field2: dbValues.field2,
                         field3: dbValues.field3,
+                        field4: dbValues.field4,
+                        field5: dbValues.field5,
                         c_time: dbValues.c_time,
                         // data_type: dbValues.data_type
                     }
                 });
+
+                // 广播实时耗电量信息
+                if (sensorData.electricity !== undefined) {
+                    global.wsManager.broadcast({
+                        type: 'electricityUpdate',
+                        message: '实时耗电量更新',
+                        data: {
+                            d_no: sensorData.d_no,
+                            electricity: sensorData.electricity,
+                            time: sensorData.time || new Date().toISOString()
+                        }
+                    });
+                }
             }
         } catch (err) {
             console.error('存储传感器数据错误：', err);
@@ -274,7 +293,7 @@ client.on('message', async (topic, message) => {
         const values = [
             errorData.d_no || null,
             errorData.time || new Date(),
-            errorData.msg || null,
+            errorData.msg || '数据异常',
             errorData.type || "2",
         ];
         try {
@@ -294,16 +313,16 @@ client.on('close', () => {
 
 // MQTT相关的API路由
 router.post('/send-direct', async (ctx) => {
-    const { topic, message } = ctx.request.body;
+    const {topic, message} = ctx.request.body;
 
     if (!topic || !message) {
         ctx.status = 400;
-        ctx.body = { error: '缺少 topic 或 message 参数' };
+        ctx.body = {error: '缺少 topic 或 message 参数'};
         return;
     }
 
     directQueue.addDirect(topic, message);
-    ctx.body = { status: '指令已发送' };
+    ctx.body = {status: '指令已发送'};
 });
 
 module.exports = router;
