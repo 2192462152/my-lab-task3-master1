@@ -1,0 +1,81 @@
+{
+	"pages": [
+		{
+			"path": "pages/device",
+			"style": {
+				"navigationBarTitleText": "机房列表"
+			}
+		},
+		{
+			"path": "pages/data1",
+			"style": {
+				"navigationBarTitleText": "实时数据"
+			}
+		},
+		{
+			"path": "pages/data2",
+			"style": {
+				"navigationBarTitleText": "历史数据"
+			}
+		},
+		{
+			"path": "pages/error",
+			"style": {
+				"navigationBarTitleText": "报警消息"
+			}
+		},
+		{
+			"path": "pages/direct",
+			"style": {
+				"navigationBarTitleText": "指令配置"
+			}
+		},
+		{
+			"path": "pages/roomDetail",
+			"style": {
+				"navigationBarTitleText": "机房详情"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#3cc51f",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/device",
+				"text": "机房列表"
+			},
+			{
+				"pagePath": "pages/data1",
+				"text": "实时数据"
+			},
+			{
+				"pagePath": "pages/data2",
+				"text": "历史数据"
+			},
+			{
+				"pagePath": "pages/error",
+				"text": "报警消息"
+			},
+			{
+				"pagePath": "pages/direct",
+				"text": "指令配置"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "移动端",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue",
+			"^qiun-data-charts": "uni_modules/qiun-data-charts/components/qiun-data-charts/qiun-data-charts.vue"
+		}
+	}
+}
