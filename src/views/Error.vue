@@ -231,7 +231,7 @@ const formatDateTime = (dateStr) => {
 // 获取错误统计数据
 const fetchErrorStatistics = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/error-statistics");
+    const response = await axios.get($baseUrl + "/error-statistics");
     if (response.data.success) {
       statistics.value = response.data.data;
     }
@@ -257,7 +257,7 @@ const fetchErrorMessages = async () => {
     if (selectedDevice.value) {
       params.deviceId = selectedDevice.value;
     }
-    const response = await axios.get($baseUrl + "/api/error-messages", {
+    const response = await axios.get($baseUrl + "/error-messages", {
       params,
     });
     total.value = response.data.total;
@@ -270,7 +270,7 @@ const fetchErrorMessages = async () => {
 
 const fetchDevices = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/sceneIds");
+    const response = await axios.get($baseUrl + "/sceneIds");
     devices.value = response.data.data;
   } catch (error) {
     ElMessage.error("获取下拉框数据失败");

@@ -1,6 +1,6 @@
 import type { App } from 'vue'
 
-const baseUrl = 'http://localhost:3000'
+const baseUrl = 'http://localhost:3000/api'
 const aiUrl = 'http://localhost:5000'
 
 // 统一注册函数（供main.ts调用，集中挂载全局参数）

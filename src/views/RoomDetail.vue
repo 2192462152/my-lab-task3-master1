@@ -320,7 +320,7 @@ const initWebSocket = () => {
 // 获取摄像头列表
 const fetchCameras = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/cameras");
+    const response = await axios.get($baseUrl + "/cameras");
     cameras.value = response.data.data;
   } catch (error) {
     ElMessage.error("获取摄像头列表失败");
@@ -338,7 +338,7 @@ const switchCamera = async (cameraAddress) => {
 
   try {
     const response = await axios.post(
-      $baseUrl + `/api/camera/${cameraAddress}/switch`
+      $baseUrl + `/camera/${cameraAddress}/switch`
     );
 
     if (response.data.success) {
@@ -364,7 +364,7 @@ const switchCamera = async (cameraAddress) => {
 // 停止所有摄像头流
 const stopAllCameras = async () => {
   try {
-    await axios.post($baseUrl + "/api/cameras/stop-all");
+    await axios.post($baseUrl + "/cameras/stop-all");
     currentStreamUrl.value = "";
     connectionStatus.value = null;
     console.log("所有摄像头流已停止");
@@ -417,10 +417,11 @@ const goBack = async () => {
 // 获取机房基本信息
 const fetchRoomInfo = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/allDevices");
-    const room = response.data.data.find(
-      (item) => item.number === roomId.value
-    );
+    const response = await axios.get($baseUrl + `/room/${roomId.value}`);
+    // const room = response.data.data.find(
+    //   (item) => item.number === roomId.value
+    // );
+    const room = response.data?.data;
     if (room) {
       roomInfo.value = room;
     } else {
@@ -436,7 +437,7 @@ const fetchRoomInfo = async () => {
 // 获取实时传感器数据
 const fetchSensorData = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/data1", {
+    const response = await axios.get($baseUrl + "/data1", {
       params: { deviceId: roomId.value },
     });
     sensorData.value = response.data.data;
@@ -467,7 +468,7 @@ const captureFrame = async () => {
     ElMessage.info("正在截取图像...");
 
     const response = await axios.post(
-      $baseUrl + `/api/camera/${selectedCamera.value}/capture`
+      $baseUrl + `/camera/${selectedCamera.value}/capture`
     );
 
     if (response.data.success) {
@@ -503,7 +504,7 @@ const startAIDetection = async () => {
     if (response.data.inference_results) {
       // 3. 保存AI检测结果到数据库
       try {
-        await axios.post($baseUrl + "/api/behaviorData/add", {
+        await axios.post($baseUrl + "/behaviorData/add", {
           d_no: roomId.value,
           originalImage: base64Image,
           processedImage: response.data.processed_image,
@@ -519,7 +520,7 @@ const startAIDetection = async () => {
         if (personDetected) {
           // 向t_error_msg表插入报警数据
           try {
-            await axios.post($baseUrl + "/api/error-messages", {
+            await axios.post($baseUrl + "/error-messages", {
               d_no: roomId.value,
               e_msg: "人员报警",
             });
@@ -527,7 +528,7 @@ const startAIDetection = async () => {
             // TODO: 检测到人员信息后的处理逻辑
             // 未来这里可能会向MQTT发送消息，调用mqtt.js中的/send-direct接口
             // 可能的实现方式：
-            // await axios.post($baseUrl + '/api/send-direct', {
+            // await axios.post($baseUrl + '/send-direct', {
             //   topic: 'alert',
             //   message: {
             //     type: 'person_detected',

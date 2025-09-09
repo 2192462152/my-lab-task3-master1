@@ -267,7 +267,7 @@ const initWebSocket = () => {
 const fetchPowerData = async () => {
   powerLoading.value = true;
   try {
-    const response = await axios.get($baseUrl + "/api/power-comparison", {
+    const response = await axios.get($baseUrl + "/power-comparison", {
       params: {
         limit: 1000, // 获取最近1000条数据
       },
@@ -335,7 +335,7 @@ const showDialog = () => {
 // 获取设备列表
 const fetchRooms = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/devices", {
+    const response = await axios.get($baseUrl + "/devices", {
       params: {
         page: currentPage.value,
         pageSize: pageSize.value,
@@ -359,10 +359,10 @@ const handleCurrentChange = (current) => {
 const submitForm = async () => {
   try {
     if (isEditing.value) {
-      await axios.put($baseUrl + `/api/devices/${editingId.value}`, form);
+      await axios.put($baseUrl + `/devices/${editingId.value}`, form);
       ElMessage.success("更新成功");
     } else {
-      await axios.post($baseUrl + "/api/devices", form);
+      await axios.post($baseUrl + "/devices", form);
       ElMessage.success("添加成功");
     }
     dialogVisible.value = false;
@@ -377,7 +377,7 @@ const submitForm = async () => {
 // 删除设备
 const deleteRoom = async (id) => {
   try {
-    await axios.delete($baseUrl + `/api/devices/${id}`);
+    await axios.delete($baseUrl + `/devices/${id}`);
     ElMessage.success("删除成功");
     await fetchRooms();
   } catch (error) {

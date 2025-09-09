@@ -513,7 +513,7 @@ const originalValues = ref({});
 const toggleAutoControl = async (enabled) => {
   try {
     const endpoint = enabled ? "/start" : "/stop";
-    await axios.post($baseUrl + `/api/auto-control${endpoint}`);
+    await axios.post($baseUrl + `/auto-control${endpoint}`);
 
     if (enabled) {
       ElMessage.success("自动控制已启动");
@@ -535,7 +535,7 @@ const toggleAutoControl = async (enabled) => {
 const updateThreshold = async (scene, sensorType, value) => {
   try {
     await axios.put(
-      $baseUrl + `/api/auto-control/threshold/${scene}/${sensorType}`,
+      $baseUrl + `/auto-control/threshold/${scene}/${sensorType}`,
       {
         threshold: value,
       }
@@ -552,7 +552,7 @@ const updateThreshold = async (scene, sensorType, value) => {
 // 获取初始阈值
 const loadThresholds = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/auto-control/thresholds");
+    const response = await axios.get($baseUrl + "/auto-control/thresholds");
     if (response.data.success) {
       thresholds.value = { ...thresholds.value, ...response.data.thresholds };
     }
@@ -668,7 +668,7 @@ const recordOperationLog = async (
   status = 1
 ) => {
   try {
-    await axios.post($baseUrl + "/api/operation-log", {
+    await axios.post($baseUrl + "/operation-log", {
       operation_type: operationType,
       target_name: targetName,
       old_value: oldValue,
@@ -683,7 +683,7 @@ const recordOperationLog = async (
 // 发送可调灯指令
 const sendLightCommand = async (sceneId, value) => {
   try {
-    await axios.post($baseUrl + "/api/send-direct", {
+    await axios.post($baseUrl + "/send-direct", {
       topic: "send",
       message: {
         scene: sceneId,
@@ -718,7 +718,7 @@ const getActiveValue = (row) => {
 
 const fetchConfigs = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/config");
+    const response = await axios.get($baseUrl + "/config");
 
     // 区分全局指令和局部指令
     const allConfigs = response.data.data;
@@ -762,7 +762,7 @@ const handleValueChange = async (row, newValue) => {
     }
 
     // 更新数据库
-    await axios.put($baseUrl + `/api/direct/${row.id}`, {
+    await axios.put($baseUrl + `/direct/${row.id}`, {
       value: value,
     });
 
@@ -812,7 +812,7 @@ const fetchOperationLogs = async () => {
       params.targetName = logFilter.value.targetName;
     }
 
-    const response = await axios.get($baseUrl + "/api/operation-logs", {
+    const response = await axios.get($baseUrl + "/operation-logs", {
       params,
     });
     operationLogs.value = response.data.data;
@@ -842,7 +842,7 @@ const clearLogs = async () => {
       }
     );
 
-    await axios.delete($baseUrl + "/api/operation-logs");
+    await axios.delete($baseUrl + "/operation-logs");
     ElMessage.success("日志清空成功");
     fetchOperationLogs();
   } catch (error) {
@@ -879,7 +879,7 @@ onUnmounted(() => {
 
 const checkAutoControlStatus = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/auto-control/status");
+    const response = await axios.get($baseUrl + "/auto-control/status");
     autoControlEnabled.value = response.data.isRunning;
     if (autoControlEnabled.value) {
       startStatusPolling();

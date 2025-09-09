@@ -282,7 +282,7 @@ const fetchData = async () => {
     if (selectedDevice.value) {
       params.deviceId = selectedDevice.value;
     }
-    const response = await axios.get($baseUrl + "/api/data1", {
+    const response = await axios.get($baseUrl + "/data1", {
       params,
     });
     data.value = response.data.data;
@@ -301,7 +301,7 @@ const fetchBehaviorData = async () => {
     if (selectedSceneId.value) {
       params.sceneId = selectedSceneId.value;
     }
-    const response = await axios.get($baseUrl + "/api/behaviorData1", {
+    const response = await axios.get($baseUrl + "/behaviorData1", {
       params,
     });
     behaviorData.value = response.data.data;
@@ -317,7 +317,7 @@ const fetchBehaviorData = async () => {
 // 获取场景ID列表
 const fetchSceneIds = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/allDevices");
+    const response = await axios.get($baseUrl + "/allDevices");
     sceneIds.value = response.data.data;
     devices.value = response.data.data;
   } catch (error) {
@@ -327,9 +327,24 @@ const fetchSceneIds = async () => {
 };
 
 // 获取传感器图数据
+// const fetchChartData = async () => {
+//   try {
+//     const response = await axios.get($baseUrl + "/data2");
+//     chartData.value = response.data.data;
+//     chartHeader.value = response.data.header;
+//     chartUnits.value = response.data.units;
+//   } catch (error) {
+//     ElMessage.error("获取图表数据失败");
+//     console.error("获取图表数据失败:", error);
+//   }
+// };
 const fetchChartData = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/data2");
+    let params = {};
+    if (selectedDevice.value) {
+      params.deviceId = selectedDevice.value;
+    }
+    const response = await axios.get($baseUrl + "/realtimeChart", { params });
     chartData.value = response.data.data;
     chartHeader.value = response.data.header;
     chartUnits.value = response.data.units;
@@ -346,6 +361,7 @@ const handleSceneIdChange = () => {
 
 const handleDeviceChange = () => {
   fetchData();
+  fetchChartData()
 };
 
 // 获取文件类型文本
@@ -413,7 +429,7 @@ const handleVideoError = () => {
 // 获取用户行为图数据
 // const fetchBehaviorChartData = async () => {
 //   try {
-//     const response = await axios.get($baseUrl + '/api/behaviorData')
+//     const response = await axios.get($baseUrl + '/behaviorData')
 //     behaviorChartData.value = response.data.data
 //     behaviorChartHeader.value = response.data.header
 //     behaviorChartUnits.value = response.data.units

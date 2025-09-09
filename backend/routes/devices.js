@@ -1,6 +1,7 @@
 const Router = require('@koa/router');
 const { connection } = require('../mysql')
 const router = new Router();
+const dayjs = require('dayjs')
 
 // 获取所有设备（不分页）
 router.get('/allDevices', async (ctx) => {
@@ -59,7 +60,7 @@ router.get('/devices', async (ctx) => {
 // 添加设备
 router.post('/devices', async (ctx) => {
     const {device_name, number, remarks} = ctx.request.body;
-    const ctime = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+    const ctime = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
     try {
         const [results] = await connection.promise().query(

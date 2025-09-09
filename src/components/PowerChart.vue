@@ -35,7 +35,9 @@ import { Refresh } from "@element-plus/icons-vue";
 import axios from "axios";
 import * as echarts from "echarts";
 import { ElMessage } from "element-plus";
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+
+const $baseUrl = inject("$baseUrl");
 
 const props = defineProps({
   roomId: {
@@ -56,7 +58,7 @@ const fetchPowerData = async () => {
 
   loading.value = true;
   try {
-    const response = await axios.get($baseUrl + "/api/power-data", {
+    const response = await axios.get($baseUrl + "/power-data", {
       params: {
         deviceId: props.roomId,
         limit: 20, // 获取最近20条数据

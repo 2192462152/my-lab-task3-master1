@@ -347,7 +347,7 @@ const fetchData = async () => {
     // if (selectedSensorType.value) {
     //   params.sensorType = selectedSensorType.value
     // }
-    const response = await axios.get($baseUrl + "/api/data2", {
+    const response = await axios.get($baseUrl + "/data2", {
       params,
     });
     data.value = response.data.data;
@@ -375,7 +375,7 @@ const fetchBehaviorData = async () => {
     if (selectedSceneId.value) {
       params.sceneId = selectedSceneId.value;
     }
-    const response = await axios.get($baseUrl + "/api/behaviorData", {
+    const response = await axios.get($baseUrl + "/behaviorData", {
       params,
     });
     behaviorData.value = response.data.data;
@@ -391,7 +391,7 @@ const fetchBehaviorData = async () => {
 // 获取场景ID列表
 const fetchSceneIds = async () => {
   try {
-    const response = await axios.get($baseUrl + "/api/sceneIds");
+    const response = await axios.get($baseUrl + "/sceneIds");
     sceneIds.value = response.data.data;
     devices.value = response.data.data;
   } catch (error) {
@@ -466,7 +466,7 @@ const deleteAIDetectionRecord = async (id) => {
       }
     );
 
-    const response = await axios.delete($baseUrl + `/api/behaviorData/${id}`);
+    const response = await axios.delete($baseUrl + `/behaviorData/${id}`);
 
     if (response.data.success) {
       ElMessage.success("删除成功");
