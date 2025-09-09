@@ -231,7 +231,10 @@ const formatDateTime = (dateStr) => {
 // 获取错误统计数据
 const fetchErrorStatistics = async () => {
   try {
-    const response = await axios.get($baseUrl + "/error-statistics");
+    let params = { deviceId: selectedDevice.value };
+    const response = await axios.get($baseUrl + "/error-statistics", {
+      params,
+    });
     if (response.data.success) {
       statistics.value = response.data.data;
     }
@@ -293,6 +296,7 @@ const handleCurrentChange = (current) => {
 const handleDeviceChange = () => {
   currentPage.value = 1;
   fetchErrorMessages();
+  fetchErrorStatistics()
 };
 
 // 初始化
