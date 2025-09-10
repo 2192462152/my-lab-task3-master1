@@ -3,6 +3,20 @@
     <el-card>
       <div class="header">
         <h1>指令配置</h1>
+        <el-select
+          v-model="selectedDevice"
+          placeholder="请选择场景"
+          style="width: 200px; margin: 0 20px"
+          clearable
+          @change="handleDeviceChange"
+        >
+          <el-option
+            v-for="device in devices"
+            :key="device.id"
+            :label="device.device_name"
+            :value="device.number"
+          />
+        </el-select>
         <div class="auto-control-section">
           <el-switch
             v-model="autoControlEnabled"
@@ -22,7 +36,7 @@
       </div>
 
       <!-- 阈值设置 -->
-      <el-card v-if="autoControlEnabled" style="margin-bottom: 20px">
+      <el-card v-if="false" style="margin-bottom: 20px">
         <template #header>
           <span>湿度阈值设置</span>
         </template>
@@ -108,7 +122,7 @@
       </el-card>
 
       <!-- 实时状态显示 -->
-      <el-card v-if="autoControlEnabled" style="margin-bottom: 20px">
+      <el-card v-if="false" style="margin-bottom: 20px">
         <template #header>
           <span>实时状态监控</span>
         </template>
@@ -210,7 +224,6 @@
         :data="configs"
         style="width: 100%; margin-bottom: 20px"
         :row-class-name="getRowClassName"
-        v-if="!autoControlEnabled"
       >
         <el-table-column prop="t_name" label="指令名称" />
         <el-table-column label="指令值" min-width="200">
@@ -233,9 +246,24 @@
                 "
               />
 
+              <!-- <el-slider
+                v-if="scope.row.f_type === '3'"
+                style="width: 50%"
+                v-model="sliderValues[scope.row.id]"
+                show-input
+                input-size="small"
+                :min="scope.row.min ? Number(scope.row.min) : 0"
+                :max="scope.row.max ? Number(scope.row.max) : 100"
+                :step="1"
+                @change="(val) => handleSliderChange(scope.row, val)"
+              /> -->
+              
               <el-slider
                 v-if="scope.row.f_type === '3'"
-                v-model="sliderValues[scope.row.id]"
+                style="width: 50%"
+                v-model="scope.row.direct_value"
+                show-input
+                input-size="small"
                 :min="scope.row.min ? Number(scope.row.min) : 0"
                 :max="scope.row.max ? Number(scope.row.max) : 100"
                 :step="1"
@@ -279,91 +307,40 @@
         </el-table-column>
       </el-table>
 
-      <!-- 设备选择 -->
-      <!-- <div class="device-select" v-if="!isAuto"> -->
-      <!-- <h2>设备选择</h2>
-      <el-select
-          v-model="selectedDevice"
-          placeholder="请选择设备"
-          @change="handleDeviceChange"
-          style="width: 200px;"
-      >
-        <el-option
-            v-for="device in devices"
-            :key="device.id"
-            :label="device.device_name"
-            :value="device.id"
-        />
-      </el-select> -->
-      <!-- </div> -->
-
-      <!-- 选择设备的指令 -->
-      <!-- 
-      <el-table
-          :data="localConfigs"
-          style="width:100%;margin-top:20px;"
-          v-if="!$store.isOne"
-          :row-class-name="getRowClassName"
-      >
-        <el-table-column prop="t_name" label="指令名称"/>
-        <el-table-column label="指令值" min-width="200">
-          <template #default="scope">
-            <div v-if="scope.row.visible">
-              <el-switch
-                  v-if="scope.row.f_type === '1'"
-                  v-model="scope.row.direct_value"
-                  :active-value="getActiveValue(scope.row)"
-                  :inactive-value="getInactiveValue(scope.row)"
-                  @change="(val) => handleLocalValueChange(scope.row, val)"
-              />
-
-              <el-input
-                  v-if="scope.row.f_type === '2'"
-                  v-model="scope.row.f_value"
-                  placeholder="请输入值"
-                  @change="(val) => handleLocalValueChange(scope.row, val)"
-              />
-
-              <el-slider
-                  v-if="scope.row.f_type === '3'"
-                  v-model="scope.row.f_value"
-                  :min="scope.row.min ? Number(scope.row.min) : 0"
-                  :max="scope.row.max ? Number(scope.row.max) : 100"
-                  :step="1"
-                  show-input
-                  @change="(val) => handleLocalValueChange(scope.row, val)"
-              />
-
-              <el-time-picker
-                  v-if="scope.row.f_type === '4'"
-                  v-model="scope.row.f_value"
-                  format="HH:mm:ss"
-                  value-format="HH:mm:ss"
-                  placeholder="选择时间"
-                  @change="(val) => handleLocalValueChange(scope.row, val)"
-              />
-
-              <el-radio-group
-                  v-if="scope.row.f_type === '5'"
-                  v-model="scope.row.f_value"
-                  @change="(val) => handleLocalValueChange(scope.row, val)"
-              >
-                <el-radio :value="getActiveValue(scope.row)">开启</el-radio>
-                <el-radio :value="getInactiveValue(scope.row)">关闭</el-radio>
-              </el-radio-group>
-            </div>
-            <span v-else>{{ scope.row.direct_value || scope.row.f_value }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.visible ? 'success' : 'danger'">
-              {{ scope.row.visible ? '可用' : '不可用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
-      -->
+      <!-- 实时监控 -->
+      <el-card v-if="autoControlEnabled" style="margin: 40px 0 20px">
+        <template #header>
+          <span>实时状态监控</span>
+        </template>
+        <el-row :gutter="20">
+          <!-- 冰箱1 -->
+          <el-col :span="8" v-for="(item, index) in sceneStatus" :key="index">
+            <el-card>
+              <template #header>
+                <span>{{ item?.deviceName }} - 加湿器控制</span>
+              </template>
+              <div class="status-info">
+                <p><strong>人数：</strong>{{ item?.personCount || 0 }}</p>
+                <p><strong>湿度：</strong>{{ item?.humidityValue || 0 }}</p>
+                <!-- <p><strong>温度：</strong>{{ sceneStatus[1]?.tempValue || 0 }}°C</p> -->
+                <p>
+                  <strong>加湿器：</strong>
+                  <el-tag
+                    :type="item?.devices?.humidifier ? 'success' : 'danger'"
+                  >
+                    {{ item?.devices?.humidifier ? "开启" : "关闭" }}
+                  </el-tag>
+                </p>
+                <!-- <p><strong>风扇：</strong>
+                  <el-tag :type="sceneStatus[1]?.devices?.fan ? 'success' : 'danger'">
+                    {{ sceneStatus[1]?.devices?.fan ? '开启' : '关闭' }}
+                  </el-tag>
+                </p> -->
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-card>
     </el-card>
 
     <!-- 操作日志 -->
@@ -455,19 +432,18 @@
 </template>
 
 <script setup>
-import useUserStore from "@/stores"; // 引入仓库
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { inject, onMounted, onUnmounted, ref } from "vue";
 
 const $baseUrl = inject("$baseUrl");
 
-// 获取userStore仓库
-const $store = useUserStore();
-const configs = ref([]); // 全局指令
-const localConfigs = ref([]); // 局部指令
+// 设备选择值
+const selectedDevice = ref("");
 const devices = ref([]);
-const isAuto = ref(false); // 自动模式标志
+
+// 获取userStore仓库
+const configs = ref([]); // 全局指令
 const sliderValues = ref({});
 
 // 操作日志相关
@@ -489,17 +465,20 @@ const thresholds = ref({
 });
 const sceneStatus = ref({
   1: {
+    deviceName: "1号冰箱",
     personCount: 0,
     humidityValue: 0,
     // tempValue: 0,
     devices: { humidifier: false },
   },
   2: {
+    deviceName: "2号冰箱",
     personCount: 0,
     humidityValue: 0,
     devices: { humidifier: false },
   },
   3: {
+    deviceName: "3号冰箱",
     personCount: 0,
     humidityValue: 0,
     devices: { humidifier: false },
@@ -509,17 +488,34 @@ const sceneStatus = ref({
 // 存储原始值的映射，用于记录操作前的值
 const originalValues = ref({});
 
+// 获取所有设备
+const fetchDevices = async () => {
+  try {
+    const response = await axios.get($baseUrl + "/sceneIds");
+    devices.value = response.data.data;
+  } catch (error) {
+    ElMessage.error("获取下拉框数据失败");
+    console.error("获取下拉框数据失败:", error);
+  }
+};
+
+// 切换设备
+const handleDeviceChange = async (selectedValue) => {
+  await fetchConfigs(autoControlEnabled.value, selectedValue);
+};
+
 // 切换自动控制
 const toggleAutoControl = async (enabled) => {
   try {
     const endpoint = enabled ? "/start" : "/stop";
     await axios.post($baseUrl + `/auto-control${endpoint}`);
 
+    await fetchConfigs(autoControlEnabled.value, selectedDevice.value);
+
     if (enabled) {
       ElMessage.success("自动控制已启动");
       startStatusPolling();
     } else {
-      await fetchConfigs();
       ElMessage.success("自动控制已停止");
       stopStatusPolling();
     }
@@ -680,18 +676,17 @@ const recordOperationLog = async (
   }
 };
 
-// 发送可调灯指令
-const sendLightCommand = async (sceneId, value) => {
+// 发送指令
+const sendLightCommand = async (topic, deviceId, direct, value) => {
   try {
     await axios.post($baseUrl + "/send-direct", {
-      topic: "send",
+      topic: topic,
       message: {
-        scene: sceneId,
-        device: "humidifier",
+        scene: deviceId,
+        device: direct,
         action: String(value),
       },
     });
-    console.log(`机房 ${sceneId} 控制指令发送成功：${value}`);
   } catch (error) {
     console.error(`机房 ${sceneId} 控制指令发送失败：`, error);
     ElMessage.error("设备控制失败");
@@ -716,29 +711,14 @@ const getActiveValue = (row) => {
   return "on";
 };
 
-const fetchConfigs = async () => {
+// 获取指令列表
+const fetchConfigs = async (auto, deviceId) => {
   try {
-    const response = await axios.get($baseUrl + "/config");
-
-    // 区分全局指令和局部指令
-    const allConfigs = response.data.data;
-
-    // 全局指令（mode='1'）
-    configs.value = allConfigs.filter(
-      (config) => config.mode === "1" && !config.t_name.includes("阈值")
-    );
-
-    // 初始化滑块值和原始值
-    configs.value.forEach((config) => {
-      if (config.f_type === "3") {
-        sliderValues.value[config.id] = Number(config.direct_value);
-      }
-      // 初始化原始值映射
-      originalValues.value[config.id] = config.direct_value;
+    const response = await axios.get($baseUrl + "/config", {
+      params: { auto: auto ? 1 : 0, deviceId },
     });
 
-    // 局部指令（mode='0'）
-    localConfigs.value = allConfigs.filter((config) => config.mode === "0");
+    configs.value = response.data.data;
   } catch (error) {
     ElMessage.error("获取配置列表失败");
     console.error("获取配置失败:", error);
@@ -767,13 +747,7 @@ const handleValueChange = async (row, newValue) => {
     });
 
     // 发送控制指令
-    if (row.t_name === "1号冰箱加湿器开关") {
-      await sendLightCommand("01", value);
-    } else if (row.t_name === "2号冰箱加湿器开关") {
-      await sendLightCommand("02", value);
-    } else if (row.t_name === "3号冰箱加湿器开关") {
-      await sendLightCommand("03", value);
-    }
+    await sendLightCommand(row.topic, row.d_no, row.direct_name, value);
 
     // 记录操作日志
     await recordOperationLog("指令操作", row.t_name, oldValue, value, 1);
@@ -784,7 +758,7 @@ const handleValueChange = async (row, newValue) => {
     row.direct_value = value;
 
     ElMessage.success("更新成功");
-    fetchConfigs();
+    fetchConfigs(autoControlEnabled.value, selectedDevice.value);
     fetchOperationLogs(); // 刷新操作日志
   } catch (error) {
     // 记录失败日志
@@ -865,11 +839,12 @@ const getRowClassName = (row) => {
   return row.row.visible ? "" : "hidden-row";
 };
 
-onMounted(() => {
-  fetchConfigs();
+onMounted(async () => {
+  await checkAutoControlStatus();
+  fetchDevices();
+  fetchConfigs(autoControlEnabled.value, selectedDevice.value);
   fetchOperationLogs();
   loadThresholds(); // 添加这行
-  checkAutoControlStatus();
 });
 
 onUnmounted(() => {

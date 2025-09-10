@@ -92,8 +92,6 @@ app.listen(port, () => {
 
     // 初始化WebSocket服务器
     wsManager.initialize(8080);
-
-    console.log('MQTT服务已启动!');
 });
 
 // 导出WebSocket管理器实例

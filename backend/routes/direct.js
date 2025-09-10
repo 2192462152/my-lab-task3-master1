@@ -4,6 +4,7 @@ const router = new Router();
 
 router.get('/config', async (ctx) => {
     try {
+        const { deviceId, auto } = ctx.query
         const [configs] = await connection.promise().query(`
             SELECT
                 c.*,
@@ -12,6 +13,9 @@ router.get('/config', async (ctx) => {
             FROM t_direct_config c
                      LEFT JOIN t_direct d ON c.id = d.config_id
                      LEFT JOIN t_direct rd ON c.ref_id = rd.config_id
+            WHERE
+                c.auto = ${auto}
+                ${deviceId ? `and c.d_no = ${deviceId}` : `and c.mode = 1`}
             ORDER BY c.\`order\`, c.id
         `);
 
@@ -25,6 +29,10 @@ router.get('/config', async (ctx) => {
                 } else {
                     shouldShow = config.ref_value === config.ref_actual_value;
                 }
+            }
+
+            if (config.f_type === '3') {
+                config.direct_value = Number(config.direct_value)
             }
 
             return {

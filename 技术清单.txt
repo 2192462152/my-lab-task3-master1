@@ -46,6 +46,7 @@ t_operation_log          # 操作日志表
 npm run dev
 # 后端 (backend目录)
 cd backend
-node server.js
+npm run dev => nodemon server.js
+npm run start => node server.js
 
 

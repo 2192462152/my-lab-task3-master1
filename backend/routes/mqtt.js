@@ -53,7 +53,7 @@ class DeviceHeartbeatMonitor {
     }
 
     backupDirect(topic, message) {
-        this.backupQueue.push({topic, message});
+        this.backupQueue.push({ topic, message });
         console.log(`物理层心跳丢失，指令已备份, 当前备份队列长度:`, this.backupQueue.length);
     }
 
@@ -78,7 +78,7 @@ class DirectQueue {
     }
 
     addDirect(topic, message) {
-        this.queue.push({topic, message})
+        this.queue.push({ topic, message })
         // console.log('当前指令列队：',this.queue)
         this.processQueue()
     }
@@ -105,7 +105,7 @@ class DirectQueue {
 
             // 发送成功，从队列中移除
             this.queue.shift()
-            console.log('指令发送成功：',direct)
+            console.log('指令发送成功：', direct)
         } catch (error) {
             console.log('指令发送失败：', error)
         } finally {
@@ -141,13 +141,13 @@ const directQueue = new DirectQueue();
 let heartbeatTimer = null
 
 // 与mqtt服务器创建连接，心跳设置60s
-const client = mqtt.connect('mqtt://192.168.1.10:1883', {
+const client = mqtt.connect('mqtt://127.0.0.1:1883', {
     keepalive: 60,
     reconnectPeriod: 5000, // 自动重连间隔(默认1秒)
 });
 
 client.on('connect', () => {
-    console.log('MQTT 连接成功');
+    console.log('MQTT 连接成功!');
 
     // 订阅传感器数据主题
     client.subscribe('sensorData', (err) => {
@@ -177,18 +177,18 @@ client.on('connect', () => {
     });
 
     // 向物理层发送心跳
-    heartbeatTimer = setInterval(() => {
-        const heartbeatMessage = {
-            status: 'alive',
-        }
-        client.publish('heartbeat', JSON.stringify(heartbeatMessage), (err)=>{
-            if (err) {
-                console.error('发送心跳失败：', err)
-            } else {
-                // console.log('发送心跳成功')
-            }
-        })
-    }, 3000) // 3秒发送一次心跳
+    // heartbeatTimer = setInterval(() => {
+    //     const heartbeatMessage = {
+    //         status: 'alive',
+    //     }
+    //     client.publish('heartbeat', JSON.stringify(heartbeatMessage), (err) => {
+    //         if (err) {
+    //             console.error('发送心跳失败：', err)
+    //         } else {
+    //             // console.log('发送心跳成功')
+    //         }
+    //     })
+    // }, 3000) // 3秒发送一次心跳
 
     // 开始处理队列中的指令
     directQueue.processQueue();
@@ -197,12 +197,12 @@ client.on('connect', () => {
 // 接收数据
 client.on('message', async (topic, message) => {
     // 处理心跳消息
-    if (topic === 'heartbeat') {
-        deviceHeartbeatMonitor.checkHeartbeat() // 更新心跳前先检查心跳，将isAlive改为false
-        deviceHeartbeatMonitor.updateHeartbeat()
-        console.log('收到物理层心跳')
-        return;
-    }
+    // if (topic === 'heartbeat') {
+    //     deviceHeartbeatMonitor.checkHeartbeat() // 更新心跳前先检查心跳，将isAlive改为false
+    //     deviceHeartbeatMonitor.updateHeartbeat()
+    //     console.log('收到物理层心跳')
+    //     return;
+    // }
 
     if (topic === 'sensorData') {
         try {
@@ -313,16 +313,25 @@ client.on('close', () => {
 
 // MQTT相关的API路由
 router.post('/send-direct', async (ctx) => {
-    const {topic, message} = ctx.request.body;
+    const { topic, message } = ctx.request.body;
 
     if (!topic || !message) {
         ctx.status = 400;
-        ctx.body = {error: '缺少 topic 或 message 参数'};
+        ctx.body = { error: '缺少 topic 或 message 参数' };
         return;
     }
 
-    directQueue.addDirect(topic, message);
-    ctx.body = {status: '指令已发送'};
+    // 既无断连场景，直接调这个，简单直接；若有，则恢复注释就行
+    client.publish(topic, JSON.stringify(message), (err) => {
+        if (err) {
+            console.error(`${topic}主题发送指令失败：`, err)
+        } else {
+            console.log(`${topic}主题发送指令成功！`)
+        }
+    })
+
+    // directQueue.addDirect(topic, message);
+    ctx.body = { status: '指令已发送' };
 });
 
 module.exports = router;
