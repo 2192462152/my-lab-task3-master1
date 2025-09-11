@@ -35,190 +35,6 @@
         </div>
       </div>
 
-      <!-- 阈值设置 -->
-      <el-card v-if="false" style="margin-bottom: 20px">
-        <template #header>
-          <span>湿度阈值设置</span>
-        </template>
-
-        <!-- 1号冰箱：湿度 -->
-        <el-card style="margin-bottom: 15px">
-          <template #header>
-            <span>1号冰箱 - 加湿器控制</span>
-          </template>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="湿度阈值">
-                <el-slider
-                  v-model="thresholds[1].湿度"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  show-input
-                  @change="updateThreshold('01', '湿度', $event)"
-                />
-                <span class="threshold-hint">低于此值时开启加湿器</span>
-              </el-form-item>
-            </el-col>
-            <!-- <el-col :span="12">
-              <el-form-item label="温度阈值">
-                <el-slider
-                  v-model="thresholds[1].温度"
-                  :min="0"
-                  :max="50"
-                  :step="1"
-                  show-input
-                  @change="updateThreshold(1, '温度', $event)"
-                />
-                <span class="threshold-hint">高于此值时开启风扇</span>
-              </el-form-item>
-            </el-col> -->
-          </el-row>
-        </el-card>
-
-        <!-- 场景2：湿度 -->
-        <el-card style="margin-bottom: 15px">
-          <template #header>
-            <span>2号冰箱 - 加湿器控制</span>
-          </template>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="湿度阈值">
-                <el-slider
-                  v-model="thresholds[2].湿度"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  show-input
-                  @change="updateThreshold('02', '湿度', $event)"
-                />
-                <span class="threshold-hint">高于此值时开启加湿器</span>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-card>
-
-        <!-- 场景3：光照 -->
-        <el-card style="margin-bottom: 15px">
-          <template #header>
-            <span>3号冰箱 - 加湿器控制</span>
-          </template>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="湿度阈值">
-                <el-slider
-                  v-model="thresholds[3].湿度"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  show-input
-                  @change="updateThreshold('03', '湿度', $event)"
-                />
-                <span class="threshold-hint">低于此值时开启加湿器</span>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-card>
-
-      <!-- 实时状态显示 -->
-      <el-card v-if="false" style="margin-bottom: 20px">
-        <template #header>
-          <span>实时状态监控</span>
-        </template>
-        <el-row :gutter="20">
-          <!-- 冰箱1 -->
-          <el-col :span="8">
-            <el-card>
-              <template #header>
-                <span>1号冰箱 - 加湿器控制</span>
-              </template>
-              <div class="status-info">
-                <p>
-                  <strong>人数：</strong>{{ sceneStatus[1]?.personCount || 0 }}
-                </p>
-                <p>
-                  <strong>湿度：</strong
-                  >{{ sceneStatus[1]?.humidityValue || 0 }}
-                </p>
-                <!-- <p><strong>温度：</strong>{{ sceneStatus[1]?.tempValue || 0 }}°C</p> -->
-                <p>
-                  <strong>加湿器：</strong>
-                  <el-tag
-                    :type="
-                      sceneStatus[1]?.devices?.humidifier ? 'success' : 'danger'
-                    "
-                  >
-                    {{ sceneStatus[1]?.devices?.humidifier ? "开启" : "关闭" }}
-                  </el-tag>
-                </p>
-                <!-- <p><strong>风扇：</strong>
-                  <el-tag :type="sceneStatus[1]?.devices?.fan ? 'success' : 'danger'">
-                    {{ sceneStatus[1]?.devices?.fan ? '开启' : '关闭' }}
-                  </el-tag>
-                </p> -->
-              </div>
-            </el-card>
-          </el-col>
-
-          <!-- 场景2 -->
-          <el-col :span="8">
-            <el-card>
-              <template #header>
-                <span>2号冰箱 - 加湿器控制</span>
-              </template>
-              <div class="status-info">
-                <p>
-                  <strong>人数：</strong>{{ sceneStatus[2]?.personCount || 0 }}
-                </p>
-                <p>
-                  <strong>湿度：</strong
-                  >{{ sceneStatus[2]?.humidityValue || 0 }}
-                </p>
-                <p>
-                  <strong>加湿器：</strong>
-                  <el-tag
-                    :type="
-                      sceneStatus[2]?.devices?.humidifier ? 'success' : 'danger'
-                    "
-                  >
-                    {{ sceneStatus[2]?.devices?.humidifier ? "开启" : "关闭" }}
-                  </el-tag>
-                </p>
-              </div>
-            </el-card>
-          </el-col>
-
-          <!-- 场景3 -->
-          <el-col :span="8">
-            <el-card>
-              <template #header>
-                <span>3号冰箱 - 加湿器控制</span>
-              </template>
-              <div class="status-info">
-                <p>
-                  <strong>人数：</strong>{{ sceneStatus[3]?.personCount || 0 }}
-                </p>
-                <p>
-                  <strong>湿度：</strong
-                  >{{ sceneStatus[3]?.humidityValue || 0 }}
-                </p>
-                <p>
-                  <strong>加湿器：</strong>
-                  <el-tag
-                    :type="
-                      sceneStatus[3]?.devices?.humidifier ? 'success' : 'danger'
-                    "
-                  >
-                    {{ sceneStatus[3]?.devices?.humidifier ? "开启" : "关闭" }}
-                  </el-tag>
-                </p>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-card>
-
       <!-- 全局指令配置 -->
       <el-table
         :data="configs"
@@ -246,18 +62,6 @@
                 "
               />
 
-              <!-- <el-slider
-                v-if="scope.row.f_type === '3'"
-                style="width: 50%"
-                v-model="sliderValues[scope.row.id]"
-                show-input
-                input-size="small"
-                :min="scope.row.min ? Number(scope.row.min) : 0"
-                :max="scope.row.max ? Number(scope.row.max) : 100"
-                :step="1"
-                @change="(val) => handleSliderChange(scope.row, val)"
-              /> -->
-              
               <el-slider
                 v-if="scope.row.f_type === '3'"
                 style="width: 50%"
@@ -314,21 +118,23 @@
         </template>
         <el-row :gutter="20">
           <!-- 冰箱1 -->
-          <el-col :span="8" v-for="(item, index) in sceneStatus" :key="index">
+          <el-col
+            :span="8"
+            v-for="(item, index) in devicesRealtime"
+            :key="index"
+          >
             <el-card>
               <template #header>
-                <span>{{ item?.deviceName }} - 加湿器控制</span>
+                <span>{{ item?.device_name }} - 加湿器控制</span>
               </template>
               <div class="status-info">
                 <p><strong>人数：</strong>{{ item?.personCount || 0 }}</p>
-                <p><strong>湿度：</strong>{{ item?.humidityValue || 0 }}</p>
+                <p><strong>湿度：</strong>{{ item?.SD || 0 }}</p>
                 <!-- <p><strong>温度：</strong>{{ sceneStatus[1]?.tempValue || 0 }}°C</p> -->
                 <p>
                   <strong>加湿器：</strong>
-                  <el-tag
-                    :type="item?.devices?.humidifier ? 'success' : 'danger'"
-                  >
-                    {{ item?.devices?.humidifier ? "开启" : "关闭" }}
+                  <el-tag :type="item?.status ? 'success' : 'danger'">
+                    {{ item?.status ? "开启" : "关闭" }}
                   </el-tag>
                 </p>
                 <!-- <p><strong>风扇：</strong>
@@ -442,8 +248,14 @@ const $baseUrl = inject("$baseUrl");
 const selectedDevice = ref("");
 const devices = ref([]);
 
-// 获取userStore仓库
-const configs = ref([]); // 全局指令
+// 获取所有设备的实时监控状态
+const devicesRealtime = ref([]);
+
+// 创建定时器
+const timer = ref(null);
+
+// 指令列表
+const configs = ref([]);
 const sliderValues = ref({});
 
 // 操作日志相关
@@ -458,32 +270,6 @@ const logFilter = ref({
 
 // 新增的响应式变量
 const autoControlEnabled = ref(false);
-const thresholds = ref({
-  1: { 湿度: 50 },
-  2: { 湿度: 50 },
-  3: { 湿度: 50 },
-});
-const sceneStatus = ref({
-  1: {
-    deviceName: "1号冰箱",
-    personCount: 0,
-    humidityValue: 0,
-    // tempValue: 0,
-    devices: { humidifier: false },
-  },
-  2: {
-    deviceName: "2号冰箱",
-    personCount: 0,
-    humidityValue: 0,
-    devices: { humidifier: false },
-  },
-  3: {
-    deviceName: "3号冰箱",
-    personCount: 0,
-    humidityValue: 0,
-    devices: { humidifier: false },
-  },
-});
 
 // 存储原始值的映射，用于记录操作前的值
 const originalValues = ref({});
@@ -507,125 +293,12 @@ const handleDeviceChange = async (selectedValue) => {
 // 切换自动控制
 const toggleAutoControl = async (enabled) => {
   try {
-    const endpoint = enabled ? "/start" : "/stop";
-    await axios.post($baseUrl + `/auto-control${endpoint}`);
 
     await fetchConfigs(autoControlEnabled.value, selectedDevice.value);
 
-    if (enabled) {
-      ElMessage.success("自动控制已启动");
-      startStatusPolling();
-    } else {
-      ElMessage.success("自动控制已停止");
-      stopStatusPolling();
-    }
   } catch (error) {
     ElMessage.error("切换控制模式失败");
-    console.error("切换控制模式失败:", error);
-    // 恢复开关状态
-    autoControlEnabled.value = !enabled;
   }
-};
-
-// 更新阈值
-const updateThreshold = async (scene, sensorType, value) => {
-  try {
-    await axios.put(
-      $baseUrl + `/auto-control/threshold/${scene}/${sensorType}`,
-      {
-        threshold: value,
-      }
-    );
-    ElMessage.success(
-      `${parseInt(scene)}号场景${sensorType}阈值已更新为${value}`
-    );
-  } catch (error) {
-    ElMessage.error("更新阈值失败");
-    console.error("更新阈值失败:", error);
-  }
-};
-
-// 获取初始阈值
-const loadThresholds = async () => {
-  try {
-    const response = await axios.get($baseUrl + "/auto-control/thresholds");
-    if (response.data.success) {
-      thresholds.value = { ...thresholds.value, ...response.data.thresholds };
-    }
-  } catch (error) {
-    console.error("获取阈值失败:", error);
-  }
-};
-
-// WebSocket连接
-let websocket = null;
-
-// 初始化WebSocket连接
-const initWebSocket = () => {
-  try {
-    websocket = new WebSocket("ws://localhost:8080");
-
-    websocket.onopen = () => {
-      console.log("WebSocket连接已建立");
-    };
-
-    websocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === "sceneStatus") {
-          updateSceneStatus(message.sceneId, message.data);
-        }
-      } catch (error) {
-        console.error("解析WebSocket消息失败:", error);
-      }
-    };
-
-    websocket.onclose = () => {
-      console.log("WebSocket连接已关闭");
-      // 尝试重连
-      setTimeout(() => {
-        if (autoControlEnabled.value) {
-          initWebSocket();
-        }
-      }, 3000);
-    };
-
-    websocket.onerror = (error) => {
-      console.error("WebSocket错误:", error);
-    };
-  } catch (error) {
-    console.error("WebSocket连接失败:", error);
-  }
-};
-
-// 关闭WebSocket连接
-const closeWebSocket = () => {
-  if (websocket) {
-    websocket.close();
-    websocket = null;
-  }
-};
-
-// 更新场景状态
-const updateSceneStatus = (sceneId, data) => {
-  const sceneIndex = parseInt(sceneId);
-  if (sceneIndex >= 1 && sceneIndex <= 3) {
-    sceneStatus.value[sceneIndex] = {
-      personCount: data.personCount || 0,
-      humidityValue: data.humidityValue || 0,
-      devices: data.devices || {},
-    };
-  }
-};
-
-// 开始状态监控（使用WebSocket）
-const startStatusPolling = () => {
-  initWebSocket();
-};
-
-// 停止状态监控
-const stopStatusPolling = () => {
-  closeWebSocket();
 };
 
 // 处理滑块值变化
@@ -725,7 +398,7 @@ const fetchConfigs = async (auto, deviceId) => {
   }
 };
 
-// 处理全局指令值变化
+// 处理指令值变化
 const handleValueChange = async (row, newValue) => {
   // 获取操作前的原始值
   const oldValue = originalValues.value[row.id] || row.direct_value;
@@ -743,6 +416,7 @@ const handleValueChange = async (row, newValue) => {
 
     // 更新数据库
     await axios.put($baseUrl + `/direct/${row.id}`, {
+      deviceId: selectedDevice.value || "0",
       value: value,
     });
 
@@ -839,30 +513,31 @@ const getRowClassName = (row) => {
   return row.row.visible ? "" : "hidden-row";
 };
 
+// 获取设备的实时监控状态
+const fetchDevicesRealtime = async () => {
+  let response = await axios.post($baseUrl + "/devicesRealtimeValue");
+  devicesRealtime.value = response.data.data.devicesRealtimeValue;
+  if (response.data.code !== 200) {
+    ElMessage.error("获取实时监控状态失败");
+  }
+};
+
 onMounted(async () => {
-  await checkAutoControlStatus();
   fetchDevices();
   fetchConfigs(autoControlEnabled.value, selectedDevice.value);
   fetchOperationLogs();
-  loadThresholds(); // 添加这行
+  fetchDevicesRealtime();
+  if (timer.value) {
+    clearInterval(timer.value); 
+  }
+  timer.value = setInterval(() => {
+    fetchDevicesRealtime();
+  }, 3000);
 });
 
 onUnmounted(() => {
-  stopStatusPolling();
-  // closeWebSocket()
+  clearInterval(timer.value)
 });
-
-const checkAutoControlStatus = async () => {
-  try {
-    const response = await axios.get($baseUrl + "/auto-control/status");
-    autoControlEnabled.value = response.data.isRunning;
-    if (autoControlEnabled.value) {
-      startStatusPolling();
-    }
-  } catch (error) {
-    console.error("检查自动控制状态失败:", error);
-  }
-};
 </script>
 
 <style scoped lang="scss">

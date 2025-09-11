@@ -33,7 +33,7 @@
           :prop="item"
           :label="`${item}(${units[index]})`"
         ></el-table-column>
-        <el-table-column prop="创建时间" label="创建时间"></el-table-column>
+        <el-table-column prop="c_time" label="创建时间"></el-table-column>
         <!-- <el-table-column label="数据类型">
           <template #default="scope">
             <el-tag :type="scope.row.data_type=='1'?'success':'info'">

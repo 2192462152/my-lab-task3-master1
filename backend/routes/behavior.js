@@ -44,7 +44,7 @@ router.get('/behaviorData1', async (ctx) => {
             dbFields.forEach((dbField, index) => {
                 newObj[header[index]] = item[dbField];
             });
-            newObj['创建时间'] = new Date(new Date(item.c_time).getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+            newObj['c_time'] = new Date(new Date(item.c_time).getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
             newObj['is_saved'] = item['is_saved'];
             return newObj;
         });
@@ -350,7 +350,7 @@ module.exports = router;
 //             INSERT INTO t_behavior_data (d_no, field1, field2, c_time) 
 //             VALUES (?, ?, ?, ?)
 //         `;
-        
+
 //         await connection.promise().query(insertSql, [
 //             sceneId,
 //             relativePath,
@@ -382,7 +382,7 @@ module.exports = router;
 // 用户行为数据(实时数据接口)
 router.get('/behaviorData1', async (ctx) => {
     const { sceneId } = ctx.query;
-    
+
     try {
         const [result] = await connection.promise().query('select f_name,db_name,unit from t_behavior_field_mapper');
 
@@ -440,7 +440,7 @@ router.get('/behaviorData', async (ctx) => {
 
         // 添加筛选条件
         const conditions = [];
-        
+
         // 时间筛选条件
         if (startTime && endTime) {
             conditions.push('c_time between ? and ?');
@@ -515,7 +515,7 @@ router.post('/behaviorData/add', async (ctx) => {
         const timestamp = Date.now();
         const originalImageName = `original_${timestamp}_${d_no}.jpg`;
         const processedImageName = `processed_${timestamp}_${d_no}.jpg`;
-        
+
         // 保存原始图像
         let originalImagePath = '';
         if (originalImage) {
@@ -524,7 +524,7 @@ router.post('/behaviorData/add', async (ctx) => {
             fs.writeFileSync(originalImageFullPath, originalImageBuffer);
             originalImagePath = `static/ai-detection/${originalImageName}`;
         }
-        
+
         // 保存处理后图像
         let processedImagePath = '';
         if (processedImage) {
@@ -533,13 +533,13 @@ router.post('/behaviorData/add', async (ctx) => {
             fs.writeFileSync(processedImageFullPath, processedImageBuffer);
             processedImagePath = `static/ai-detection/${processedImageName}`;
         }
-        
+
         // 插入数据到t_behavior_data表（存储文件路径而不是base64数据）
         const [insertResult] = await connection.promise().query(
             'INSERT INTO t_behavior_data (d_no, field1, field2, field3, field4, c_time) VALUES (?, ?, ?, ?, ?, ?)',
             [d_no, originalImagePath, processedImagePath, detectionCount, JSON.stringify(results), c_time]
         );
-        
+
         ctx.body = {
             success: true,
             id: insertResult.insertId,
@@ -559,14 +559,14 @@ router.post('/behaviorData/add', async (ctx) => {
 // 删除行为数据记录
 router.delete('/behaviorData/:id', async (ctx) => {
     const { id } = ctx.params;
-    
+
     try {
         // 先获取记录信息，以便删除对应的图片文件
         const [rows] = await connection.promise().query('SELECT field1, field2 FROM t_behavior_data WHERE id = ?', [id]);
-        
+
         if (rows.length > 0) {
             const record = rows[0];
-            
+
             // 删除原始图片文件
             if (record.field1) {
                 const originalImagePath = path.join(__dirname, '..', record.field1);
@@ -574,7 +574,7 @@ router.delete('/behaviorData/:id', async (ctx) => {
                     fs.unlinkSync(originalImagePath);
                 }
             }
-            
+
             // 删除处理后图片文件
             if (record.field2) {
                 const processedImagePath = path.join(__dirname, '..', record.field2);
@@ -583,10 +583,10 @@ router.delete('/behaviorData/:id', async (ctx) => {
                 }
             }
         }
-        
+
         // 删除数据库记录
         await connection.promise().query('DELETE FROM t_behavior_data WHERE id = ?', [id]);
-        
+
         ctx.body = {
             success: true,
             message: '删除成功'
@@ -602,7 +602,7 @@ router.delete('/behaviorData/:id', async (ctx) => {
 router.get('/sceneIds', async (ctx) => {
     try {
         const [result] = await connection.promise().query('SELECT * FROM t_device');
-        
+
         ctx.body = {
             data: result
         };

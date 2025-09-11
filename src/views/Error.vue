@@ -111,7 +111,7 @@
           </el-col>
           <el-col :span="12">
             <!-- 可以放其他图表或信息 -->
-            <el-card style="height: 480px">
+            <el-card style="height: calc(100% - 20px);">
               <div style="padding: 20px; text-align: center">
                 <h3>统计详情</h3>
                 <el-divider />
@@ -136,7 +136,7 @@
         <!-- <el-table-column prop="e_no" label="错误编号"/> -->
         <el-table-column prop="c_time" label="创建时间">
           <template #default="scope">
-            {{ formatDateTime(scope.row.c_time) }}
+            {{ dayjs(scope.row.c_time).format("YYYY-MM-DD HH:mm:ss") }}
           </template>
         </el-table-column>
         <el-table-column prop="type" label="类型">
@@ -170,7 +170,6 @@
 </template>
 
 <script setup>
-import useUserStore from "@/stores"; // 引入仓库
 import {
   CircleClose,
   Document,
@@ -178,16 +177,13 @@ import {
   Warning,
 } from "@element-plus/icons-vue";
 import axios from "axios";
-import { ElMessage } from "element-plus";
+import { dayjs, ElMessage } from "element-plus";
 import { onMounted, ref } from "vue";
 import ErrorPieChart from "../components/ErrorPieChart.vue";
 
 import { inject } from "vue";
 
 const $baseUrl = inject("$baseUrl");
-
-// 获取userStore仓库
-const $store = useUserStore();
 
 // 响应式状态
 const errorMessages = ref([]);
@@ -213,20 +209,6 @@ const statistics = ref({
 // 默认时间
 const defaultStartTime = new Date(2000, 1, 1, 0, 0, 0);
 const defaultEndTime = new Date(2000, 2, 1, 23, 59, 59);
-
-// 格式化日期时间
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};
 
 // 获取错误统计数据
 const fetchErrorStatistics = async () => {
@@ -271,6 +253,7 @@ const fetchErrorMessages = async () => {
   }
 };
 
+// 获取所有设备
 const fetchDevices = async () => {
   try {
     const response = await axios.get($baseUrl + "/sceneIds");
@@ -296,7 +279,7 @@ const handleCurrentChange = (current) => {
 const handleDeviceChange = () => {
   currentPage.value = 1;
   fetchErrorMessages();
-  fetchErrorStatistics()
+  fetchErrorStatistics();
 };
 
 // 初始化

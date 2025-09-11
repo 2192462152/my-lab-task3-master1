@@ -2,6 +2,7 @@ const Router = require('@koa/router');
 const { connection } = require('../mysql')
 const router = new Router();
 
+// 获取指令列表
 router.get('/config', async (ctx) => {
     try {
         const { deviceId, auto } = ctx.query
@@ -50,15 +51,29 @@ router.get('/config', async (ctx) => {
     }
 });
 
+// 跟新指令值
 router.put('/direct/:id', async (ctx) => {
     const { id } = ctx.params;
-    const { value } = ctx.request.body;
+    const { value, deviceId } = ctx.request.body;
 
     try {
-        await connection.promise().query(
-            'update t_direct set value = ? where config_id = ?',
-            [value, id]
-        );
+        if (deviceId == '0') {
+            const [ref_type] = await connection.promise().query(
+                'select ref_type from t_direct where config_id = ?',
+                [id]
+            );
+
+            await connection.promise().query(
+                'update t_direct set value = ? where ref_type = ?',
+                [value, ref_type[0].ref_type]
+            );
+
+        } else {
+            await connection.promise().query(
+                'update t_direct set value = ? where config_id = ?',
+                [value, id]
+            );
+        }
         ctx.body = {
             message: '更新成功'
         };
@@ -66,6 +81,25 @@ router.put('/direct/:id', async (ctx) => {
         ctx.status = 500;
         ctx.body = { error: error.message };
     }
+});
+
+// 指令发送接口
+router.post('/send-direct', async (ctx) => {
+    const { topic, message } = ctx.request.body;
+
+    if (!topic || !message) {
+        ctx.status = 400;
+        ctx.body = { error: '缺少 topic 或 message 参数' };
+        return;
+    }
+
+    global.mqttClient.publish(topic, message, () => {
+        console.log(`${topic} 主题发布成功！`)
+    }, () => {
+        console.log(`${topic} 主题发布失败！`)
+    })
+
+    ctx.body = { status: '指令已发送' };
 });
 
 module.exports = router;

@@ -2,7 +2,92 @@ const Router = require('@koa/router');
 const { connection } = require('../mysql')
 const router = new Router();
 const dayjs = require('dayjs')
+const initMqttPromise = require('../utils/mqtt');
 
+(async () => {
+    try {
+        await initMqttPromise
+        // 订阅sensorData主题，并处理其消息
+        global.mqttClient.subscribe('sensorData', async (message) => {
+            try {
+                const sensorData = JSON.parse(message);
+
+                // 初始化一个用于存储数据库字段值的对象
+                const dbValues = {
+                    d_no: sensorData.d_no || null,
+                    c_time: sensorData.time || new Date(),
+                    field1: null,
+                    field2: null,
+                    field3: null,
+                    field4: null,
+                    field5: null,
+                };
+
+                // 查询p_name和db_name的映射关系
+                const [mapperRows] = await connection.promise().query('SELECT p_name, db_name FROM t_field_mapper');
+
+                // 遍历所有物理量
+                mapperRows.forEach(row => {
+                    // 如果传入的数据中包含该物理量，则赋值给对应的数据库字段
+                    if (sensorData[row.p_name] !== undefined) {
+                        dbValues[row.db_name] = sensorData[row.p_name];
+                    }
+                });
+
+                // 执行SQL插入
+                const sql = `INSERT INTO t_data(d_no, field1, field2, field3, field4, field5, c_time)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                const values = [
+                    dbValues.d_no,
+                    dbValues.field1,
+                    dbValues.field2,
+                    dbValues.field3,
+                    dbValues.field4,
+                    dbValues.field5,
+                    dbValues.c_time,
+                ];
+
+                await connection.promise().query(sql, values);
+
+                // 广播传感器数据更新消息
+                global.wsManager.broadcast({
+                    type: 'sensorDataUpdate',
+                    message: '传感器数据',
+                    data: {
+                        d_no: dbValues.d_no,
+                        field1: dbValues.field1,
+                        field2: dbValues.field2,
+                        field3: dbValues.field3,
+                        field4: dbValues.field4,
+                        field5: dbValues.field5,
+                        c_time: dbValues.c_time,
+                        // data_type: dbValues.data_type
+                    }
+                });
+
+                // 广播实时耗电量信息
+                if (sensorData.electricity !== undefined) {
+                    global.wsManager.broadcast({
+                        type: 'electricityUpdate',
+                        message: '实时耗电量更新',
+                        data: {
+                            d_no: sensorData.d_no,
+                            electricity: sensorData.electricity,
+                            time: sensorData.time || new Date().toISOString()
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('处理sensorData主题数据发生错误:', err)
+            }
+        }, (err) => {
+            console.error('sensorData主题订阅失败:', err)
+        })
+
+    } catch (err) {
+        console.err('sensorData处的MQTT初始化发生错误:', err)
+    }
+})()
 
 router.get('/data1', async (ctx) => {
     const { deviceId } = ctx.query;
@@ -30,9 +115,7 @@ router.get('/data1', async (ctx) => {
             dbFields.forEach((dbField, index) => {
                 newObj[header[index]] = item[dbField];
             });
-            // newObj['创建时间'] = new Date(new Date(item.c_time).getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
-            // newObj['c_time'] = dayjs().format('YYYY-MM-DD HH:mm:ss')
-            newObj['创建时间'] = dayjs().format('YYYY-MM-DD HH:mm:ss')
+            newObj['c_time'] = dayjs().format('YYYY-MM-DD HH:mm:ss')
             newObj['data_type'] = item['data_type'];
             return newObj;
         });
@@ -78,7 +161,7 @@ router.get('/realtimeChart', async (ctx) => {
             newObj['data_type'] = item['data_type'];
             return newObj;
         });
-        console.log('1321312',newResult)
+        console.log('1321312', newResult)
         ctx.body = {
             header,
             units,
