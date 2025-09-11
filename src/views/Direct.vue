@@ -296,6 +296,21 @@ const toggleAutoControl = async (enabled) => {
 
     await fetchConfigs(autoControlEnabled.value, selectedDevice.value);
 
+    // 当打开自动模式开启状态查询
+    if (enabled) {
+      if (timer.value) {
+        clearInterval(timer.value);
+      }
+      timer.value = setInterval(() => {
+        fetchDevicesRealtime();
+      }, 3000);
+    }
+
+    // 当关闭自动模式停止状态查询
+    else if (!enabled) {
+      clearInterval(timer.value);
+    }
+
   } catch (error) {
     ElMessage.error("切换控制模式失败");
   }
@@ -527,12 +542,6 @@ onMounted(async () => {
   fetchConfigs(autoControlEnabled.value, selectedDevice.value);
   fetchOperationLogs();
   fetchDevicesRealtime();
-  if (timer.value) {
-    clearInterval(timer.value); 
-  }
-  timer.value = setInterval(() => {
-    fetchDevicesRealtime();
-  }, 3000);
 });
 
 onUnmounted(() => {
