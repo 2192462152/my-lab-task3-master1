@@ -85,7 +85,7 @@ const initMqttPromise = require('../utils/mqtt');
         })
 
     } catch (err) {
-        console.err('sensorData处的MQTT初始化发生错误:', err)
+        console.error('sensorData处的MQTT初始化发生错误:', err)
     }
 })()
 
