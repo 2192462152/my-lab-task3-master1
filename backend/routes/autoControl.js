@@ -70,7 +70,7 @@ router.post('/devicesRealtimeValue', async (ctx) => {
 
             global.mqttClient.publish('send', {
                 scene: item.d_no,
-                device: item.direct_name,
+                device: 'JSQ',
                 action: status ? 'on' : 'off',
             }, () => {
                 console.log(`send 主题发送成功！`)

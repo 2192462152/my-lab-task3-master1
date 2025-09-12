@@ -11,9 +11,9 @@ const { spawn, activeStreams,
 // 服务器配置 - 方便修改IP地址
 const serverConfig = {
   // 视频流服务器IP地址（手机访问时需要改为实际IP）
-  VIDEO_SERVER_IP: 'localhost', // localhost改为实际IP地址
+  VIDEO_SERVER_IP: '192.168.1.100', // localhost改为实际IP地址
   // API服务器IP地址
-  API_SERVER_IP: 'localhost'
+  API_SERVER_IP: '192.168.1.100'
 };
 
 // 获取摄像头配置信息
@@ -80,7 +80,7 @@ router.post('/camera/:cameraAddress/switch', async (ctx) => {
     ctx.body = {
       error: '切换摄像头失败: ' + error.message
     };
-    console.error('1111', error)
+    console.error('切换摄像头失败: ', error)
   }
 });
 
