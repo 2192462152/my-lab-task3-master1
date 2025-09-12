@@ -448,7 +448,7 @@ const parseDetectionResults = (resultsStr) => {
 
 // 显示图片对话框
 const showImageDialog = (imagePath, title) => {
-  currentImageUrl.value = `/${imagePath}`;
+  currentImageUrl.value = $baseUrl.slice(0,21) + `/${imagePath}`; // 加上服务器地址才有图
   imageDialogTitle.value = title;
   imageDialogVisible.value = true;
 };
