@@ -3,8 +3,8 @@ const mysql = require('mysql2')
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'ytb@2003',
-    database: '2025test'
+    password: '520199',  // 改了下数据库账号密码
+    database: 'test7'
 });
 
 connection.connect((err) => {
