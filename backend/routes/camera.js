@@ -1,5 +1,6 @@
 const Router = require('@koa/router');
 const { spawn } = require('child_process');
+const { connection } = require('../mysql')
 const fs = require('fs');
 const path = require('path');
 const router = new Router();
@@ -19,27 +20,31 @@ const serverConfig = {
   API_SERVER_IP: 'localhost'
 };
 
-// 摄像头配置
-const cameraConfig = {
-  '192.168.1.101:554': {
-    id: 'camera1',
-    name: '摄像头1',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.101:554/Streaming/Channels/101',
-    httpPort: 7001
-  },
-  '192.168.1.14:554': {
-    id: 'camera2',
-    name: '摄像头2',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.14:554/Streaming/Channels/101',
-    httpPort: 7002
-  },
-  '192.168.1.15:554': {
-    id: 'camera3',
-    name: '摄像头3',
-    rtspUrl: 'rtsp://admin:admin@192.168.1.15:554/Streaming/Channels/101',
-    httpPort: 7003
+// 获取摄像头配置信息
+const getCameraConfigs = async () => {
+  try {
+    sql1 = `select
+      camera_id,
+      cameraAddress, 
+      rtsp_path, 
+      http_port
+      from t_device
+    `
+    const [result1] = await connection.promise().query(sql1);
+    let configs = {}
+    result1.forEach(item => {
+      configs[item.cameraAddress] = {
+        id: item.camera_id,
+        rtspUrl: `rtsp://admin:admin@${item.cameraAddress}` + item.rtsp_path,
+        httpPort: item.http_port
+      }
+    })
+    return configs;
+  } catch (error) {
+    console.error('获取摄像头配置失败:', error);
+    return {};
   }
-};
+}
 
 // 启动FFmpeg流转换
 const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
@@ -301,131 +306,14 @@ const startFFmpegStream = (cameraId, rtspUrl, httpPort, isRestart = false) => {
   });
 };
 
-// 停止单个摄像头流的内部函数
-const stopSingleCameraStream = (cameraAddress) => {
-  const config = cameraConfig[cameraAddress];
-  if (!config) return false;
-
-  let stopped = false;
-
-  // 停止FFmpeg进程
-  if (activeStreams.has(config.id)) {
-    const process = activeStreams.get(config.id);
-    process.kill('SIGTERM');
-    activeStreams.delete(config.id);
-    stopped = true;
-  }
-
-  // 停止HTTP服务器
-  if (activeStreams.has(`${config.id}_server`)) {
-    const server = activeStreams.get(`${config.id}_server`);
-    server.close();
-    activeStreams.delete(`${config.id}_server`);
-    stopped = true;
-  }
-
-  // 清理计数器
-  clientConnections.delete(config.id);
-  restartCounters.delete(config.id);
-
-  if (stopped) {
-    console.log(`摄像头 ${config.id} 流已停止`);
-  }
-
-  return stopped;
-};
-
-// 获取摄像头列表
-router.get('/cameras', async (ctx) => {
-  try {
-    const cameras = Object.entries(cameraConfig).map(([key, config]) => ({
-      id: config.id,
-      name: config.name,
-      address: key,
-      status: activeStreams.has(config.id) ? 'active' : 'inactive',
-      iframeUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/`
-    }));
-
-    ctx.body = {
-      success: true,
-      data: cameras
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { error: error.message };
-  }
-});
-
-// 启动摄像头流
-router.post('/camera/:cameraAddress/start', async (ctx) => {
-  const { cameraAddress } = ctx.params;
-
-  try {
-    const config = cameraConfig[cameraAddress];
-    if (!config) {
-      ctx.status = 404;
-      ctx.body = { error: '摄像头不存在' };
-      return;
-    }
-
-    // 检查是否已经在运行
-    if (activeStreams.has(config.id)) {
-      ctx.body = {
-        success: true,
-        message: '摄像头流已在运行',
-        iframeUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/`,
-        streamUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/stream`
-      };
-      return;
-    }
-
-    await startFFmpegStream(config.id, config.rtspUrl, config.httpPort);
-
-    ctx.body = {
-      success: true,
-      message: '摄像头流启动成功',
-      iframeUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/`,
-      streamUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/stream`
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      error: '启动摄像头流失败: ' + error.message
-    };
-  }
-});
-
-// 停止摄像头流
-router.post('/camera/:cameraAddress/stop', async (ctx) => {
-  const { cameraAddress } = ctx.params;
-
-  try {
-    const config = cameraConfig[cameraAddress];
-    if (!config) {
-      ctx.status = 404;
-      ctx.body = { error: '摄像头不存在' };
-      return;
-    }
-
-    const stopped = stopSingleCameraStream(cameraAddress);
-
-    ctx.body = {
-      success: true,
-      message: stopped ? '摄像头流停止成功' : '摄像头流未在运行'
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      error: '停止摄像头流失败: ' + error.message
-    };
-  }
-});
-
 // 切换摄像头（停止其他，启动指定的）
 router.post('/camera/:cameraAddress/switch', async (ctx) => {
   const { cameraAddress } = ctx.params;
 
   try {
+
+    const cameraConfig = await getCameraConfigs();
+    
     const config = cameraConfig[cameraAddress];
     if (!config) {
       ctx.status = 404;
@@ -459,65 +347,12 @@ router.post('/camera/:cameraAddress/switch', async (ctx) => {
   }
 });
 
-// 停止所有摄像头流 **
-router.post('/cameras/stop-all', async (ctx) => {
-  try {
-    let stoppedCount = 0;
-
-    Object.keys(cameraConfig).forEach(cameraAddress => {
-      if (stopSingleCameraStream(cameraAddress)) {
-        stoppedCount++;
-      }
-    });
-
-    ctx.body = {
-      success: true,
-      message: `成功停止 ${stoppedCount} 个摄像头流`
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      error: '停止所有摄像头流失败: ' + error.message
-    };
-  }
-});
-
-// 获取单个摄像头信息
-router.get('/camera/:cameraAddress', async (ctx) => {
-  const { cameraAddress } = ctx.params;
-
-  try {
-    const config = cameraConfig[cameraAddress];
-    if (!config) {
-      ctx.status = 404;
-      ctx.body = { error: '摄像头不存在' };
-      return;
-    }
-
-    const isActive = activeStreams.has(config.id);
-
-    ctx.body = {
-      success: true,
-      data: {
-        id: config.id,
-        name: config.name,
-        address: cameraAddress,
-        status: isActive ? 'active' : 'inactive',
-        iframeUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/`,
-        streamUrl: `http://${serverConfig.VIDEO_SERVER_IP}:${config.httpPort}/stream`
-      }
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { error: error.message };
-  }
-});
-
 // 截图功能 **
 router.post('/camera/:cameraAddress/capture', async (ctx) => {
   const { cameraAddress } = ctx.params;
 
   try {
+    const cameraConfig = await getCameraConfigs()
     const config = cameraConfig[cameraAddress];
     if (!config) {
       ctx.status = 404;
@@ -593,36 +428,6 @@ router.post('/camera/:cameraAddress/capture', async (ctx) => {
     ctx.body = {
       error: '截图失败: ' + error.message
     };
-  }
-});
-
-// 健康检查接口
-router.get('/camera/:cameraAddress/health', async (ctx) => {
-  const { cameraAddress } = ctx.params;
-
-  try {
-    const config = cameraConfig[cameraAddress];
-    if (!config) {
-      ctx.status = 404;
-      ctx.body = { error: '摄像头不存在' };
-      return;
-    }
-
-    const isActive = activeStreams.has(config.id);
-    const serverActive = activeStreams.has(`${config.id}_server`);
-
-    ctx.body = {
-      success: true,
-      data: {
-        cameraId: config.id,
-        streamActive: isActive,
-        serverActive: serverActive,
-        status: (isActive && serverActive) ? 'healthy' : 'unhealthy'
-      }
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { error: error.message };
   }
 });
 
