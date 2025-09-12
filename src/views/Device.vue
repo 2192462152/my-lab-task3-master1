@@ -225,43 +225,10 @@ const dialogVisible = ref(false);
 const powerData = ref({});
 const statistics = ref({});
 const powerLoading = ref(false);
-let ws = null;
 
 // 平均功率最低和最高的冰箱
 const lowestAvgPowerFridge = ref(null);
 const highestAvgPowerFridge = ref(null);
-
-// 初始化WebSocket连接
-const initWebSocket = () => {
-  try {
-    ws = new WebSocket("ws://localhost:8080");
-
-    ws.onopen = () => {
-      console.log("WebSocket连接已建立");
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        console.log("收到消息:", message);
-
-        // 可以移除 electricityUpdate 相关的处理，因为不再需要实时耗电量数据
-      } catch (error) {
-        console.error("处理WebSocket消息失败:", error);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket连接已关闭");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket连接错误:", error);
-    };
-  } catch (error) {
-    console.error("初始化WebSocket连接失败:", error);
-  }
-};
 
 // 获取功率对比数据
 const fetchPowerData = async () => {
@@ -394,15 +361,11 @@ const resetForm = () => {
 // 组件挂载时获取数据
 onMounted(() => {
   fetchRooms();
-  initWebSocket();
   fetchPowerData();
 });
 
 // 组件卸载时清理资源
 onUnmounted(() => {
-  if (ws) {
-    ws.close();
-  }
 });
 </script>
 

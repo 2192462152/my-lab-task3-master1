@@ -211,9 +211,7 @@ import { useRoute, useRouter } from "vue-router";
 
 const $baseUrl = inject("$baseUrl");
 const $aiUrl = inject("$aiUrl");
-
-// WebSocket连接
-let ws = null;
+const $websocketClient = inject("$websocketClient");
 
 const route = useRoute();
 const router = useRouter();
@@ -273,24 +271,12 @@ const getRoomStatusText = () => {
 // 初始化WebSocket连接
 const initWebSocket = () => {
   try {
-    ws = new WebSocket("ws://localhost:8080");
-
-    ws.onopen = () => {
-      console.log("WebSocket连接已建立");
-    };
-
-    ws.onmessage = (event) => {
+    $websocketClient.connect();
+    $websocketClient.onMessage((message) => {
       try {
-        const message = JSON.parse(event.data);
-        console.log("收到消息:", message);
-
         if (message.type === "sensorDataUpdate") {
-          // 传感器数据更新
-          console.log("传感器数据更新");
           fetchSensorData();
         } else if (message.type === "electricityUpdate") {
-          // 实时耗电量更新
-          console.log("耗电量数据更新:", message.data);
           // 只更新当前房间的耗电量数据
           if (message.data.d_no === roomId.value) {
             electricityData.value = {
@@ -303,15 +289,7 @@ const initWebSocket = () => {
       } catch (error) {
         console.error("处理WebSocket消息失败:", error);
       }
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket连接已关闭");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket连接错误:", error);
-    };
+    });
   } catch (error) {
     console.error("初始化WebSocket连接失败:", error);
   }
@@ -615,10 +593,7 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
-  if (ws) {
-    ws.close();
-    ws = null;
-  }
+  $websocketClient.close();
 });
 </script>
 

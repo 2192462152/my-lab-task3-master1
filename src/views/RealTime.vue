@@ -185,19 +185,13 @@
 </template>
 
 <script setup lang="ts">
-import useUserStore from "@/stores"; // 引入仓库
 import axios from "axios";
 import { ElMessage } from "element-plus";
 import { inject, onMounted, onUnmounted, ref } from "vue";
 import TimeSeriesChart from "../components/TimeSeriesChart.vue";
 
 const $baseUrl = inject("$baseUrl");
-
-// 获取userStore仓库
-const $store = useUserStore();
-
-// WebSocket连接
-let ws: WebSocket | null = null;
+const $websocketClient = inject("$websocketClient") as any;
 
 // 表格数据
 let data = ref([]);
@@ -209,7 +203,7 @@ let behaviorUnits = ref([]);
 
 // 设备选择
 let selectedDevice = ref("");
-let devices = ref([]);
+let devices = ref([]) as any;
 
 // 场景ID相关
 const selectedSceneId = ref("");
@@ -236,40 +230,17 @@ const currentSceneName = ref("");
 // 初始化WebSocket连接
 const initWebSocket = () => {
   try {
-    ws = new WebSocket("ws://localhost:8080");
-
-    ws.onopen = () => {
-      console.log("WebSocket连接已建立");
-    };
-
-    ws.onmessage = (event) => {
+    $websocketClient.connect();
+    $websocketClient.onMessage((message: any) => {
       try {
-        const message = JSON.parse(event.data);
-        console.log("收到消息:", message);
-
         if (message.type === "sensorDataUpdate") {
-          // 传感器数据更新
-          console.log("传感器数据更新");
           fetchData();
           fetchChartData();
         }
-        // else if (message.type === 'behaviorDataUpdate') {
-        //   // 用户行为数据更新
-        //   console.log('用户行为数据更新')
-        //   fetchBehaviorData();
-        // }
       } catch (error) {
         console.error("处理WebSocket消息失败:", error);
       }
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket连接已关闭");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket连接错误:", error);
-    };
+    });
   } catch (error) {
     console.error("初始化WebSocket连接失败:", error);
   }
@@ -278,7 +249,7 @@ const initWebSocket = () => {
 // 获取传感器数据
 const fetchData = async () => {
   try {
-    const params = {};
+    const params = {} as any;
     if (selectedDevice.value) {
       params.deviceId = selectedDevice.value;
     }
@@ -297,7 +268,7 @@ const fetchData = async () => {
 // 获取用户行为数据
 const fetchBehaviorData = async () => {
   try {
-    const params = {};
+    const params = {} as any;
     if (selectedSceneId.value) {
       params.sceneId = selectedSceneId.value;
     }
@@ -340,7 +311,7 @@ const fetchSceneIds = async () => {
 // };
 const fetchChartData = async () => {
   try {
-    let params = {};
+    let params = {} as any;
     if (selectedDevice.value) {
       params.deviceId = selectedDevice.value;
     }
@@ -463,7 +434,7 @@ const handleVideoError = () => {
 // }
 
 onMounted(() => {
-  // 初始化WebSocket连接
+  // 初始化websocket
   initWebSocket();
 
   fetchData();
@@ -479,10 +450,7 @@ onMounted(() => {
 
 // 组件卸载时清除定时器
 onUnmounted(() => {
-  if (ws) {
-    ws.close();
-    ws = null;
-  }
+  $websocketClient.close();
   // stopPolling()
 });
 </script>
