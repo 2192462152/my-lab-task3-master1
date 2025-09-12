@@ -10,59 +10,60 @@ const initMqttPromise = require('../utils/mqtt');
         // 订阅sensorData主题，并处理其消息
         global.mqttClient.subscribe('sensorData', async (message) => {
             try {
-                const sensorData = JSON.parse(message);
+                let sensorData = JSON.parse(message)
 
-                // 初始化一个用于存储数据库字段值的对象
-                const dbValues = {
-                    d_no: sensorData.d_no || null,
-                    c_time: sensorData.time || new Date(),
-                    field1: null,
-                    field2: null,
-                    field3: null,
-                    field4: null,
-                    field5: null,
-                };
-
-                // 查询p_name和db_name的映射关系
-                const [mapperRows] = await connection.promise().query('SELECT p_name, db_name FROM t_field_mapper');
-
-                // 遍历所有物理量
-                mapperRows.forEach(row => {
-                    // 如果传入的数据中包含该物理量，则赋值给对应的数据库字段
-                    if (sensorData[row.p_name] !== undefined) {
-                        dbValues[row.db_name] = sensorData[row.p_name];
+                let mapperRows;
+                try {
+                    [mapperRows] = await connection.promise().query(
+                        'SELECT db_name, p_name FROM t_field_mapper'
+                    );
+                    mapperRows = mapperRows.filter(row => row.db_name && row.p_name);
+                    if (mapperRows.length === 0) {
+                        console.warn('字段映射表 t_field_mapper 中无有效映射关系');
                     }
+                } catch (queryErr) {
+                    throw queryErr;
+                }
+
+                const pToDbMap = {};
+                const dbFieldNames = [];
+                mapperRows.forEach(row => {
+                    pToDbMap[row.p_name] = row.db_name;
+                    dbFieldNames.push(row.db_name);
                 });
 
-                // 执行SQL插入
-                const sql = `INSERT INTO t_data(d_no, field1, field2, field3, field4, field5, c_time)
-                                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
-                const values = [
-                    dbValues.d_no,
-                    dbValues.field1,
-                    dbValues.field2,
-                    dbValues.field3,
-                    dbValues.field4,
-                    dbValues.field5,
-                    dbValues.c_time,
-                ];
+                // 动态生成field与匹配相对应的值
+                const dynamicDbValues = dbFieldNames.reduce((obj, dbField) => {
+                    const sensorField = Object.keys(pToDbMap).find(pField => pToDbMap[pField] === dbField);
+                    obj[dbField] = sensorData[sensorField] ?? null;
+                    return obj;
+                }, {});
 
-                await connection.promise().query(sql, values);
+                const dbValues = {
+                    d_no: sensorData.d_no ?? "-1",
+                    c_time: sensorData.time
+                        ? dayjs(sensorData.time).format('YYYY-MM-DD HH:mm:ss')
+                        : dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                    ...dynamicDbValues
+                };
+
+                const fields = ['d_no', 'c_time', ...dbFieldNames].join(',');
+                const placeholders = Object.keys(dbValues).fill('?').join(', ');
+                const insertValues = Object.values(dbValues);
+
+                // 执行SQL插入
+                const sql = `
+                    INSERT INTO
+                        t_data (${fields})  
+                    VALUES (${placeholders})`
+
+                await connection.promise().query(sql, insertValues);
 
                 // 广播传感器数据更新消息
                 global.wsManager.broadcast({
                     type: 'sensorDataUpdate',
                     message: '传感器数据',
-                    data: {
-                        d_no: dbValues.d_no,
-                        field1: dbValues.field1,
-                        field2: dbValues.field2,
-                        field3: dbValues.field3,
-                        field4: dbValues.field4,
-                        field5: dbValues.field5,
-                        c_time: dbValues.c_time,
-                        // data_type: dbValues.data_type
-                    }
+                    data: { ...dbValues }
                 });
 
                 // 广播实时耗电量信息
@@ -71,9 +72,11 @@ const initMqttPromise = require('../utils/mqtt');
                         type: 'electricityUpdate',
                         message: '实时耗电量更新',
                         data: {
-                            d_no: sensorData.d_no,
+                            d_no: sensorData.d_no ?? null,
                             electricity: sensorData.electricity,
-                            time: sensorData.time || new Date().toISOString()
+                            time: sensorData.time
+                                ? dayjs(sensorData.time).format('YYYY-MM-DD HH:mm:ss')
+                                : dayjs().format('YYYY-MM-DD HH:mm:ss')
                         }
                     });
                 }
@@ -85,7 +88,7 @@ const initMqttPromise = require('../utils/mqtt');
         })
 
     } catch (err) {
-        console.err('sensorData处的MQTT初始化发生错误:', err)
+        console.error('sensorData处的MQTT初始化发生错误:', err)
     }
 })()
 
@@ -157,11 +160,10 @@ router.get('/realtimeChart', async (ctx) => {
                 newObj[header[index]] = item[dbField];
             });
             newObj['c_time'] = dayjs().format('YYYY-MM-DD HH:mm:ss')
-            // newObj['创建时间'] = dayjs().format('YYYY-MM-DD HH:mm:ss')
             newObj['data_type'] = item['data_type'];
             return newObj;
         });
-        console.log('1321312', newResult)
+
         ctx.body = {
             header,
             units,

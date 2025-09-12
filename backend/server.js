@@ -46,6 +46,7 @@ app.use(router.routes()).use(router.allowedMethods());
 
 // 启动服务器
 const port = 3000;
-app.listen(port, () => {
-    console.log(`服务器运行在端口 ${port}!`);
+const host = 'localhost'
+app.listen(port, host, () => {
+    console.log(`服务器运行在 http://${host}:${port}!`);
 });

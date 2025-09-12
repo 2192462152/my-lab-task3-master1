@@ -28,7 +28,7 @@ const initMqttPromise = require('../utils/mqtt');
         })
 
     } catch (err) {
-        console.err('error处的MQTT初始化发生错误:', err)
+        console.error('error处的MQTT初始化发生错误:', err)
     }
 })()
 
