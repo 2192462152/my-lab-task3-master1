@@ -1,23 +1,25 @@
 <template>
   <div class="container">
+    <el-card style="margin: 0 0 10px">
+      <el-select
+        v-model="selectedDevice"
+        placeholder="请选择场景"
+        style="width: 200px"
+        clearable
+        @change="handleDeviceChange"
+      >
+        <el-option
+          v-for="device in devices"
+          :key="device.id"
+          :label="device.device_name"
+          :value="device.number"
+        />
+      </el-select>
+    </el-card>
     <el-card>
       <div class="header">
         <div class="title-group">
           <h1>错误消息列表</h1>
-          <el-select
-            v-model="selectedDevice"
-            placeholder="请选择场景"
-            style="width: 200px; margin-left: 20px"
-            clearable
-            @change="handleDeviceChange"
-          >
-            <el-option
-              v-for="device in devices"
-              :key="device.id"
-              :label="device.device_name"
-              :value="device.number"
-            />
-          </el-select>
         </div>
         <div class="filter-container">
           <el-date-picker
@@ -97,7 +99,7 @@
                   <div class="statistics-number">
                     {{ statistics.otherTypesCount || 0 }}
                   </div>
-                  <div class="statistics-label">其他类型</div>
+                  <div class="statistics-label">其它类型</div>
                 </div>
               </div>
             </el-card>
@@ -105,13 +107,13 @@
         </el-row>
 
         <!-- 饼图展示 -->
-        <el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <error-pie-chart :data="statistics.pieChartData || []" />
           </el-col>
           <el-col :span="12">
             <!-- 可以放其他图表或信息 -->
-            <el-card style="height: calc(100% - 20px);">
+            <el-card style="height: calc(100% - 20px)">
               <div style="padding: 20px; text-align: center">
                 <h3>统计详情</h3>
                 <el-divider />
@@ -141,8 +143,8 @@
         </el-table-column>
         <el-table-column prop="type" label="类型">
           <template #default="scope">
-            <el-tag :type="scope.row.type === '1' ? 'warning' : 'danger'">
-              {{ scope.row.type === "1" ? "告警" : "错误" }}
+            <el-tag :type="elTagTypeStyle(scope.row.type)">
+              {{ elTagTypeText(scope.row.type) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -209,6 +211,32 @@ const statistics = ref({
 // 默认时间
 const defaultStartTime = new Date(2000, 1, 1, 0, 0, 0);
 const defaultEndTime = new Date(2000, 2, 1, 23, 59, 59);
+
+// 列表的类型的颜色
+const elTagTypeStyle = (value) => {
+  let result = "info";
+  if (value == 1) {
+    result = "warning";
+  } else if (value == 2) {
+    result = "danger";
+  } else {
+    result = "info";
+  }
+  return result;
+};
+
+// 列表的类型的显示文本
+const elTagTypeText = (value) => {
+  let result = "其它";
+  if (value == 1) {
+    result = "告警";
+  } else if (value == 2) {
+    result = "错误";
+  } else {
+    result = "其它";
+  }
+  return result;
+};
 
 // 获取错误统计数据
 const fetchErrorStatistics = async () => {
@@ -326,23 +354,23 @@ onMounted(() => {
     height: 100px;
 
     &.total-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+      color: rgba(255, 255, 255, 0.95);
     }
 
     &.warning-card {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
+      background: linear-gradient(135deg, #fff380 0%, #ffc833 100%);
+      color: #8a5300;
     }
 
     &.error-card {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      background: linear-gradient(135deg, #ff8080 0%, #e02020 100%);
       color: white;
     }
 
     &.other-card {
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      color: white;
+      background: linear-gradient(135deg, #f0f2f5 0%, #909399 100%);
+      color: #303133;
     }
 
     :deep(.el-card__body) {

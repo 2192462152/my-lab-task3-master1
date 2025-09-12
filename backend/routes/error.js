@@ -15,7 +15,7 @@ const initMqttPromise = require('../utils/mqtt');
                              values (?, ?, ?, ?)`;
                 const values = [
                     errorData.d_no || null,
-                    errorData.time || new Date(),
+                    errorData.time || dayjs().format('YYYY-MM-DD HH:mm:ss'),
                     errorData.msg || '数据异常',
                     errorData.type || "2",
                 ];
@@ -127,7 +127,7 @@ router.get('/error-statistics', async (ctx) => {
             switch (type) {
                 case '1': return '告警';
                 case '2': return '错误';
-                default: return `其他类型`;
+                default: return `其它类型`;
             }
         };
 

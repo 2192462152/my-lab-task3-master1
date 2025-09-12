@@ -39,7 +39,7 @@
     <el-row :gutter="20">
       <!-- 环境参数 -->
       <el-col :span="12">
-        <el-card style="margin-bottom: 20px">
+        <el-card style="height: calc(100% - 20px)">
           <template #header>
             <div class="card-header">
               <span>实时环境参数</span>
@@ -62,7 +62,7 @@
               </el-descriptions-item>
             </el-descriptions>
             <div class="update-time">
-              更新时间: {{ sensorData[0]["创建时间"] }}
+              更新时间: {{ sensorData[0]["c_time"] }}
             </div>
           </div>
           <el-empty v-else description="暂无传感器数据" />
@@ -158,9 +158,9 @@
     </el-row>
 
     <!-- 实时耗电量显示 -->
-    <el-row style="margin-top: 20px">
+    <el-row>
       <el-col :span="24">
-        <el-card style="margin-bottom: 20px">
+        <el-card>
           <div class="electricity-display">
             <div class="electricity-header">
               <h3>冰箱实时耗电量</h3>

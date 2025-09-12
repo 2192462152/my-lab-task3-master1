@@ -1,23 +1,25 @@
 <template>
   <div class="container">
+    <el-card style="margin: 0 0 10px">
+      <el-select
+        v-model="selectedDevice"
+        placeholder="请选择场景"
+        style="width: 200px;"
+        clearable
+        @change="handleDeviceChange"
+      >
+        <el-option
+          v-for="device in devices"
+          :key="device.id"
+          :label="device.device_name"
+          :value="device.number"
+        />
+      </el-select>
+    </el-card>
     <el-card>
       <div class="header">
         <div class="title-group">
           <h1>传感器数据</h1>
-          <el-select
-            v-model="selectedDevice"
-            placeholder="请选择场景"
-            style="width: 200px; margin-left: 20px"
-            clearable
-            @change="handleDeviceChange"
-          >
-            <el-option
-              v-for="device in devices"
-              :key="device.id"
-              :label="device.device_name"
-              :value="device.number"
-            />
-          </el-select>
         </div>
         <!-- 添加传感器选择框 -->
         <!-- <div class="filter-container">
@@ -90,20 +92,6 @@
           <h1>AI检测结果</h1>
         </div>
         <div class="filter-container">
-          <el-select
-            v-model="selectedSceneId"
-            placeholder="选择机房"
-            clearable
-            style="width: 150px"
-            @change="handleSceneIdChange"
-          >
-            <el-option
-              v-for="sceneId in sceneIds"
-              :key="sceneId.id"
-              :label="sceneId.device_name"
-              :value="sceneId.number"
-            />
-          </el-select>
           <el-date-picker
             v-model="behaviorStartTime"
             type="datetime"
@@ -262,10 +250,6 @@ const behaviorEndTime = ref(null);
 // 添加传感器选择变量
 // const selectedSensorType = ref("")
 
-// 场景ID相关
-const selectedSceneId = ref("");
-const sceneIds = ref([]);
-
 // 分页相关状态
 const total = ref(0);
 const currentPage = ref(1);
@@ -372,8 +356,8 @@ const fetchBehaviorData = async () => {
     if (behaviorEndTime.value) {
       params.endTime = behaviorEndTime.value;
     }
-    if (selectedSceneId.value) {
-      params.sceneId = selectedSceneId.value;
+    if (selectedDevice.value) {
+      params.sceneId = selectedDevice.value;
     }
     const response = await axios.get($baseUrl + "/behaviorData", {
       params,
@@ -392,7 +376,6 @@ const fetchBehaviorData = async () => {
 const fetchSceneIds = async () => {
   try {
     const response = await axios.get($baseUrl + "/sceneIds");
-    sceneIds.value = response.data.data;
     devices.value = response.data.data;
   } catch (error) {
     ElMessage.error("获取场景ID列表失败");
@@ -411,14 +394,10 @@ const behaviorHandleSearch = () => {
 };
 
 // 场景ID变化处理
-const handleSceneIdChange = () => {
-  behaviorCurrentPage.value = 1;
-  fetchBehaviorData();
-};
-
-// 场景ID变化处理
 const handleDeviceChange = () => {
   currentPage.value = 1;
+  behaviorCurrentPage.value = 1;
+  fetchBehaviorData();
   fetchData();
 };
 
@@ -448,7 +427,7 @@ const parseDetectionResults = (resultsStr) => {
 
 // 显示图片对话框
 const showImageDialog = (imagePath, title) => {
-  currentImageUrl.value = $baseUrl.slice(0,21) + `/${imagePath}`; // 加上服务器地址才有图
+  currentImageUrl.value = $baseUrl.slice(0, 21) + `/${imagePath}`; // 加上服务器地址才有图
   imageDialogTitle.value = title;
   imageDialogVisible.value = true;
 };

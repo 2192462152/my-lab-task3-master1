@@ -79,7 +79,7 @@
     </el-card>
 
     <!-- 功率对比图卡片 -->
-    <el-card class="power-comparison-card" style="margin-bottom: 20px">
+    <el-card class="power-comparison-card" style="margin: 20px 0">
       <template #header>
         <div class="card-header">
           <span>冰箱功率对比分析</span>

@@ -1,22 +1,25 @@
 <template>
   <div class="container">
+    <el-card style="margin: 0 0 10px">
+      <el-select
+        v-model="selectedDevice"
+        placeholder="请选择场景"
+        style="width: 200px;"
+        clearable
+        @change="handleDeviceChange"
+      >
+        <el-option
+          v-for="device in devices"
+          :key="device.id"
+          :label="device.device_name"
+          :value="device.number"
+        />
+      </el-select>
+    </el-card>
+
     <el-card>
       <div class="header">
         <h1>指令配置</h1>
-        <el-select
-          v-model="selectedDevice"
-          placeholder="请选择场景"
-          style="width: 200px; margin: 0 20px"
-          clearable
-          @change="handleDeviceChange"
-        >
-          <el-option
-            v-for="device in devices"
-            :key="device.id"
-            :label="device.device_name"
-            :value="device.number"
-          />
-        </el-select>
         <div class="auto-control-section">
           <el-switch
             v-model="autoControlEnabled"
@@ -110,47 +113,43 @@
           </template>
         </el-table-column>
       </el-table>
+    </el-card>
 
-      <!-- 实时监控 -->
-      <el-card v-if="autoControlEnabled" style="margin: 40px 0 20px">
-        <template #header>
-          <span>实时状态监控</span>
-        </template>
-        <el-row :gutter="20">
-          <!-- 冰箱1 -->
-          <el-col
-            :span="8"
-            v-for="(item, index) in devicesRealtime"
-            :key="index"
-          >
-            <el-card>
-              <template #header>
-                <span>{{ item?.device_name }} - 加湿器控制</span>
-              </template>
-              <div class="status-info">
-                <p><strong>人数：</strong>{{ item?.personCount || 0 }}</p>
-                <p><strong>湿度：</strong>{{ item?.SD || 0 }}</p>
-                <!-- <p><strong>温度：</strong>{{ sceneStatus[1]?.tempValue || 0 }}°C</p> -->
-                <p>
-                  <strong>加湿器：</strong>
-                  <el-tag :type="item?.status ? 'success' : 'danger'">
-                    {{ item?.status ? "开启" : "关闭" }}
-                  </el-tag>
-                </p>
-                <!-- <p><strong>风扇：</strong>
+    <!-- 实时监控 -->
+    <el-card v-if="autoControlEnabled" style="margin: 20px 0">
+      <template #header>
+        <span>实时状态监控</span>
+      </template>
+      <el-row :gutter="20">
+        <!-- 冰箱1 -->
+        <el-col :span="8" v-for="(item, index) in devicesRealtime" :key="index">
+          <el-card>
+            <template #header>
+              <span>{{ item?.device_name }} - 加湿器控制</span>
+            </template>
+            <div class="status-info">
+              <p><strong>人数：</strong>{{ item?.personCount || 0 }}</p>
+              <p><strong>湿度：</strong>{{ item?.SD || 0 }}</p>
+              <!-- <p><strong>温度：</strong>{{ sceneStatus[1]?.tempValue || 0 }}°C</p> -->
+              <p>
+                <strong>加湿器：</strong>
+                <el-tag :type="item?.status ? 'success' : 'danger'">
+                  {{ item?.status ? "开启" : "关闭" }}
+                </el-tag>
+              </p>
+              <!-- <p><strong>风扇：</strong>
                   <el-tag :type="sceneStatus[1]?.devices?.fan ? 'success' : 'danger'">
                     {{ sceneStatus[1]?.devices?.fan ? '开启' : '关闭' }}
                   </el-tag>
                 </p> -->
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-card>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
     </el-card>
 
     <!-- 操作日志 -->
-    <el-card v-if="!autoControlEnabled">
+    <el-card v-if="!autoControlEnabled" style="margin: 20px 0">
       <template #header>
         <div class="log-header">
           <span>操作日志</span>
@@ -272,7 +271,7 @@ const logFilter = ref({
 const autoControlEnabled = ref(false);
 
 // 存储原始值的映射，用于记录操作前的值
-const originalValues = ref({});
+let originalValues = [];
 
 // 获取所有设备
 const fetchDevices = async () => {
@@ -293,7 +292,6 @@ const handleDeviceChange = async (selectedValue) => {
 // 切换自动控制
 const toggleAutoControl = async (enabled) => {
   try {
-
     await fetchConfigs(autoControlEnabled.value, selectedDevice.value);
 
     // 当打开自动模式开启状态查询
@@ -301,6 +299,7 @@ const toggleAutoControl = async (enabled) => {
       if (timer.value) {
         clearInterval(timer.value);
       }
+      fetchDevicesRealtime();
       timer.value = setInterval(() => {
         fetchDevicesRealtime();
       }, 3000);
@@ -310,7 +309,6 @@ const toggleAutoControl = async (enabled) => {
     else if (!enabled) {
       clearInterval(timer.value);
     }
-
   } catch (error) {
     ElMessage.error("切换控制模式失败");
   }
@@ -318,12 +316,6 @@ const toggleAutoControl = async (enabled) => {
 
 // 处理滑块值变化
 const handleSliderChange = async (row, newValue) => {
-  // 在操作前保存原始值
-  if (!(row.id in originalValues.value)) {
-    originalValues.value[row.id] =
-      sliderValues.value[row.id] || row.direct_value;
-  }
-
   const numericValue = Number(newValue);
 
   sliderValues.value[row.id] = numericValue;
@@ -407,6 +399,12 @@ const fetchConfigs = async (auto, deviceId) => {
     });
 
     configs.value = response.data.data;
+    originalValues = response.data.data.map((item) => {
+      return {
+        ...item,
+        oldValue: item.direct_value,
+      };
+    });
   } catch (error) {
     ElMessage.error("获取配置列表失败");
     console.error("获取配置失败:", error);
@@ -415,10 +413,10 @@ const fetchConfigs = async (auto, deviceId) => {
 
 // 处理指令值变化
 const handleValueChange = async (row, newValue) => {
-  // 获取操作前的原始值
-  const oldValue = originalValues.value[row.id] || row.direct_value;
-
   try {
+    const oldValueItem =
+      originalValues.find((item) => item.id === row.id) || {};
+
     let value = newValue;
 
     if (row.f_type === "1" || row.f_type === "5") {
@@ -439,19 +437,29 @@ const handleValueChange = async (row, newValue) => {
     await sendLightCommand(row.topic, row.d_no, row.direct_name, value);
 
     // 记录操作日志
-    await recordOperationLog("指令操作", row.t_name, oldValue, value, 1);
+    await recordOperationLog(
+      "指令操作",
+      row.t_name,
+      oldValueItem.oldValue,
+      value,
+      1
+    );
 
-    // 更新原始值为新值，为下次操作做准备
-    originalValues.value[row.id] = value;
     // 更新行数据
     row.direct_value = value;
 
     ElMessage.success("更新成功");
-    fetchConfigs(autoControlEnabled.value, selectedDevice.value);
-    fetchOperationLogs(); // 刷新操作日志
+    await fetchConfigs(autoControlEnabled.value, selectedDevice.value);
+    await fetchOperationLogs(); // 刷新操作日志
   } catch (error) {
     // 记录失败日志
-    await recordOperationLog("指令操作", row.t_name, oldValue, newValue, 0);
+    await recordOperationLog(
+      "指令操作",
+      row.t_name,
+      oldValueItem.oldValue,
+      newValue,
+      0
+    );
 
     ElMessage.error("更新失败");
     console.error("更新失败:", error);
@@ -541,11 +549,10 @@ onMounted(async () => {
   fetchDevices();
   fetchConfigs(autoControlEnabled.value, selectedDevice.value);
   fetchOperationLogs();
-  fetchDevicesRealtime();
 });
 
 onUnmounted(() => {
-  clearInterval(timer.value)
+  clearInterval(timer.value);
 });
 </script>
 

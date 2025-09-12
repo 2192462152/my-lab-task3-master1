@@ -1,26 +1,26 @@
 <template>
   <div class="container">
+    <el-card style="margin: 0 0 10px">
+      <el-select
+        v-model="selectedDevice"
+        placeholder="请选择场景"
+        clearable
+        style="width: 200px"
+        @change="handleDeviceChange"
+      >
+        <el-option
+          v-for="device in devices"
+          :key="device.id"
+          :label="device.device_name"
+          :value="device.number"
+        />
+      </el-select>
+    </el-card>
     <el-card>
       <!-- 传感器数据 -->
       <div class="header">
         <div class="title-group">
           <h1>传感器数据</h1>
-          <div class="filter-container">
-            <el-select
-              v-model="selectedDevice"
-              placeholder="请选择场景"
-              clearable
-              style="width: 150px"
-              @change="handleDeviceChange"
-            >
-              <el-option
-                v-for="device in devices"
-                :key="device.id"
-                :label="device.device_name"
-                :value="device.number"
-              />
-            </el-select>
-          </div>
         </div>
       </div>
 
@@ -361,7 +361,7 @@ const handleSceneIdChange = () => {
 
 const handleDeviceChange = () => {
   fetchData();
-  fetchChartData()
+  fetchChartData();
 };
 
 // 获取文件类型文本
