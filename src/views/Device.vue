@@ -236,7 +236,7 @@ const fetchPowerData = async () => {
   try {
     const response = await axios.get($baseUrl + "/power-comparison", {
       params: {
-        limit: 1000, // 获取最近1000条数据
+        limit: 30, // 获取最近30条数据
       },
     });
 

@@ -63,7 +63,7 @@ router.post('/devicesRealtimeValue', async (ctx) => {
                 if (field in result3[0]) {
                     SDValue = result3[0][field];
                 }
-            } 
+            }
 
             // 判断加湿器的状态
             let status = SDValue < item.value && personCount > 0
@@ -108,14 +108,19 @@ const getCount = async (sceneId) => {
         const sql1 = `select * from t_device`
         let [allDevices] = await connection.promise().query(sql1);
 
-        const cameraAddress = allDevices.find(item => sceneId == item.number)
-        if (!cameraAddress) {
+        const deviceItem = allDevices.find(item => sceneId == item.number)
+        if (!deviceItem) {
             console.error(`场景${sceneId}没有对应的摄像头配置`);
             return 0;
         }
 
+        if (deviceItem.isUse == 0) {
+            console.warn(`场景${sceneId}的摄像头没有启用`);
+            return 0;
+        }
+
         // 调用camera.js的截图接口获取base64图片
-        const captureResponse = await axios.post(`http://localhost:3000/api/camera/${cameraAddress}/capture`);
+        const captureResponse = await axios.post(`http://localhost:3000/api/camera/${deviceItem?.cameraAddress}/capture`);
 
         if (!captureResponse.data.success || !captureResponse.data.data.base64Image) {
             console.error(`场景${sceneId}截图失败`);

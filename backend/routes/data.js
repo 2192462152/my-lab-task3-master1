@@ -318,7 +318,7 @@ router.get('/power-data', async (ctx) => {
 
 // 获取三个冰箱的功率对比数据接口
 router.get('/power-comparison', async (ctx) => {
-    const { limit = 50 } = ctx.query;
+    const { limit = 30 } = ctx.query;
 
     try {
         // 获取电流和电压字段映射
@@ -377,9 +377,9 @@ router.get('/power-comparison', async (ctx) => {
             if (data.length > 0) {
                 const powers = data.map(item => item.power);
                 statistics[fridgeId] = {
-                    maxPower: parseFloat(Math.max(...powers).toFixed(3)),
-                    minPower: parseFloat(Math.min(...powers).toFixed(3)),
-                    avgPower: parseFloat((powers.reduce((sum, power) => sum + power, 0) / powers.length).toFixed(3))
+                    maxPower: parseFloat(Math.max(...powers).toFixed(2)),
+                    minPower: parseFloat(Math.min(...powers).toFixed(2)),
+                    avgPower: parseFloat((powers.reduce((sum, power) => sum + power, 0) / powers.length).toFixed(2))
                 };
             } else {
                 statistics[fridgeId] = {
