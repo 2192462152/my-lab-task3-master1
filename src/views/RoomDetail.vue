@@ -28,7 +28,7 @@
           roomInfo.number
         }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{
-          formatDateTime(roomInfo.ctime)
+          dayjs(roomInfo.ctime).format("YYYY-MM-DD HH:mm:ss")
         }}</el-descriptions-item>
         <el-descriptions-item label="描述" :span="3">{{
           roomInfo.remarks || "暂无描述"
@@ -75,18 +75,10 @@
           <template #header>
             <div class="card-header">
               <span>视频监控</span>
-              <!-- <el-select v-model="selectedCamera" placeholder="选择摄像头" size="small" style="width: 150px;" @change="handleCameraChange">
-                <el-option
-                  v-for="camera in cameras"
-                  :key="camera.id"
-                  :label="camera.name"
-                  :value="camera.address"
-                />
-              </el-select> -->
             </div>
           </template>
           <div class="video-container">
-            <div v-if="selectedCamera" class="video-wrapper">
+            <div v-if="roomInfo.cameraAddress" class="video-wrapper">
               <!-- 使用image显示摄像头流 -->
               <div class="video-player">
                 <img
@@ -208,6 +200,7 @@ import {
   ref,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { dayjs } from "element-plus";
 
 const $baseUrl = inject("$baseUrl");
 const $aiUrl = inject("$aiUrl");
@@ -221,7 +214,6 @@ const roomInfo = ref({});
 const sensorData = ref([]);
 const sensorHeaders = ref([]);
 const sensorUnits = ref([]);
-const selectedCamera = ref("");
 const connectionStatus = ref(null);
 const currentStreamUrl = ref("");
 const streamLoading = ref(false);
@@ -240,19 +232,11 @@ const cameras = ref([]);
 // 计算属性
 const roomId = computed(() => route.params.roomId);
 
-// 格式化时间
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleString("zh-CN");
-};
-
 // 格式化耗电量时间
 const formatElectricityTime = (timeStr) => {
   if (!timeStr) return "--";
   try {
-    const date = new Date(timeStr);
-    return date.toLocaleString("zh-CN");
+    return dayjs(timeStr).format("YYYY-MM-DD HH:mm:ss");
   } catch (error) {
     return timeStr;
   }
@@ -295,17 +279,6 @@ const initWebSocket = () => {
   }
 };
 
-// 获取摄像头列表
-const fetchCameras = async () => {
-  try {
-    const response = await axios.get($baseUrl + "/cameras");
-    cameras.value = response.data.data;
-  } catch (error) {
-    ElMessage.error("获取摄像头列表失败");
-    console.error("获取摄像头列表失败:", error);
-  }
-};
-
 // 切换摄像头（停止其他，启动指定的）
 const switchCamera = async (cameraAddress) => {
   streamLoading.value = true;
@@ -339,30 +312,6 @@ const switchCamera = async (cameraAddress) => {
   }
 };
 
-// 停止所有摄像头流
-const stopAllCameras = async () => {
-  try {
-    await axios.post($baseUrl + "/cameras/stop-all");
-    currentStreamUrl.value = "";
-    connectionStatus.value = null;
-    console.log("所有摄像头流已停止");
-  } catch (error) {
-    console.error("停止所有摄像头流失败:", error);
-  }
-};
-
-// 摄像头切换处理
-const handleCameraChange = async () => {
-  if (!selectedCamera.value) {
-    currentStreamUrl.value = "";
-    connectionStatus.value = null;
-    return;
-  }
-
-  // 使用新的切换接口
-  await switchCamera(selectedCamera.value);
-};
-
 // 刷新视频
 const refreshVideo = async () => {
   // 刷新整个页面
@@ -387,8 +336,6 @@ const handleImageError = () => {
 
 // 返回机房列表
 const goBack = async () => {
-  // 离开页面前停止所有摄像头流
-  // await stopAllCameras()
   router.push("/device");
 };
 
@@ -427,16 +374,10 @@ const fetchSensorData = async () => {
   }
 };
 
-// 刷新传感器数据
-// const refreshSensorData = () => {
-//   fetchSensorData()
-//   ElMessage.success('数据已刷新')
-// }
-
 // 截图功能
 const captureFrame = async () => {
-  if (!selectedCamera.value) {
-    ElMessage.warning("请先选择摄像头");
+  if (!roomInfo.value.cameraAddress) {
+    ElMessage.warning("该场景无摄像头");
     return;
   }
 
@@ -446,7 +387,7 @@ const captureFrame = async () => {
     ElMessage.info("正在截取图像...");
 
     const response = await axios.post(
-      $baseUrl + `/camera/${selectedCamera.value}/capture`
+      $baseUrl + `/camera/${roomInfo.value.cameraAddress}/capture`
     );
 
     if (response.data.success) {
@@ -539,24 +480,6 @@ const startAIDetection = async () => {
   }
 };
 
-// 监听摄像头选择变化
-// watch(selectedCamera, (newCamera, oldCamera) => {
-//   if (newCamera && newCamera !== oldCamera) {
-//     handleCameraChange()
-//   }
-// }, { immediate: false })
-
-// 页面卸载前清理
-onBeforeUnmount(async () => {
-  // console.log('页面卸载，停止所有摄像头流')
-  // await stopAllCameras()
-});
-
-// 监听浏览器页面关闭/刷新
-const handleBeforeUnload = async () => {
-  // await stopAllCameras()
-};
-
 // 初始化
 onMounted(async () => {
   // 初始化WebSocket连接
@@ -564,32 +487,12 @@ onMounted(async () => {
 
   await fetchRoomInfo();
   await fetchSensorData();
-  await fetchCameras();
 
-  // 根据机房编号自动选择对应的摄像头
-  if (cameras.value.length > 0) {
-    const roomNumber = roomId.value;
-    let cameraIndex = 0;
-
-    // 根据机房编号选择摄像头
-    if (roomNumber === "01") cameraIndex = 0;
-    else if (roomNumber === "02") cameraIndex = 1;
-    else if (roomNumber === "03") cameraIndex = 2;
-
-    if (cameras.value[cameraIndex]) {
-      selectedCamera.value = cameras.value[cameraIndex].address;
-      // handleCameraChange() 会通过 watch 自动触发
-      switchCamera(selectedCamera.value);
-    }
+  // 摄像头地址从场景信息里获取
+  if (roomInfo.value) {
+    console.log("当前房间摄像头地址:", roomInfo.value.cameraAddress);
+    switchCamera(roomInfo.value.cameraAddress);
   }
-
-  // 监听页面关闭事件
-  window.addEventListener("beforeunload", handleBeforeUnload);
-});
-
-// 清理事件监听器
-onBeforeUnmount(() => {
-  window.removeEventListener("beforeunload", handleBeforeUnload);
 });
 
 onUnmounted(() => {

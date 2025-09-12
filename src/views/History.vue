@@ -230,6 +230,7 @@ import TimeSeriesChart from "../components/TimeSeriesChart.vue";
 import { inject } from "vue";
 
 const $baseUrl = inject("$baseUrl");
+const $aiImageUrl = inject("$aiImageUrl");
 
 // 获取userStore仓库
 const $store = useUserStore();
@@ -427,7 +428,7 @@ const parseDetectionResults = (resultsStr) => {
 
 // 显示图片对话框
 const showImageDialog = (imagePath, title) => {
-  currentImageUrl.value = $baseUrl.slice(0, 21) + `/${imagePath}`; // 加上服务器地址才有图
+  currentImageUrl.value = $aiImageUrl + `/${imagePath}`; // 加上服务器地址才有图
   imageDialogTitle.value = title;
   imageDialogVisible.value = true;
 };
