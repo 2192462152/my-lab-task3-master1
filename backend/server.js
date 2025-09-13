@@ -17,6 +17,7 @@ const behaviorDataRouter = require('./routes/behavior');
 const operationLogRouter = require('./routes/operationLog');
 const cameraRouter = require('./routes/camera'); // 新增摄像头路由
 const autoControlRouter = require('./routes/autoControl');
+const otherRouter = require('./routes/other');
 
 const app = new Koa();
 const router = new Router();
@@ -41,6 +42,7 @@ router.use('/api', behaviorDataRouter.routes(), behaviorDataRouter.allowedMethod
 router.use('/api', operationLogRouter.routes(), operationLogRouter.allowedMethods());
 router.use('/api', cameraRouter.routes(), cameraRouter.allowedMethods()); // 新增摄像头路由
 router.use('/api', autoControlRouter.routes(), autoControlRouter.allowedMethods()); // 新增自动控制路由
+router.use('/api', otherRouter.routes(), otherRouter.allowedMethods());
 
 app.use(router.routes()).use(router.allowedMethods());
 

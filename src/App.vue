@@ -50,6 +50,12 @@
             </el-icon>
             指令配置信息
           </el-menu-item>
+          <el-menu-item index="6" @click="otherList">
+            <el-icon>
+              <Shop />
+            </el-icon>
+            其它页面
+          </el-menu-item>
         </el-menu>
       </el-scrollbar>
       <el-scrollbar style="height: 100vh; width: 85%">
@@ -89,6 +95,9 @@ const data2List = () => {
 };
 const directList = () => {
   $router.push("/direct");
+};
+const otherList = () => {
+  $router.push("/other");
 };
 </script>
 

@@ -212,7 +212,6 @@
         <el-image
           :src="currentImageUrl"
           fit="contain"
-          style="max-width: 100%; max-height: 700px"
           :preview-src-list="[currentImageUrl]"
         />
       </div>

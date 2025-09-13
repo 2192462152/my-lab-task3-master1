@@ -35,6 +35,20 @@ router.get('/devices', async (ctx) => {
     }
 });
 
+// 获取所有场景ID列表
+router.get('/sceneIds', async (ctx) => {
+    try {
+        const [result] = await connection.promise().query('SELECT * FROM t_device');
+
+        ctx.body = {
+            data: result
+        };
+    } catch (error) {
+        ctx.status = 500;
+        ctx.body = { error: error.message };
+    }
+});
+
 // 获取单个机房详情
 router.get('/room/:roomId', async (ctx) => {
     const { roomId } = ctx.params;

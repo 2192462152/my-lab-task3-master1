@@ -4,6 +4,7 @@ const { connection } = require('../mysql')
 const path = require('path');
 const fs = require('fs');
 const router = new Router();
+const dayjs = require('dayjs')
 
 // 确保AI检测图片目录存在
 const ensureDirectoryExists = (dirPath) => {
@@ -145,7 +146,7 @@ router.get('/behaviorData', async (ctx) => {
 // 添加AI检测结果到行为数据表
 router.post('/behaviorData/add', async (ctx) => {
     const { d_no, originalImage, processedImage, detectionCount, results } = ctx.request.body;
-    const c_time = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+    const c_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
     try {
         // 生成唯一文件名
@@ -235,19 +236,6 @@ router.delete('/behaviorData/:id', async (ctx) => {
     }
 });
 
-// 获取所有场景ID列表
-router.get('/sceneIds', async (ctx) => {
-    try {
-        const [result] = await connection.promise().query('SELECT * FROM t_device');
-
-        ctx.body = {
-            data: result
-        };
-    } catch (error) {
-        ctx.status = 500;
-        ctx.body = { error: error.message };
-    }
-});
 
 module.exports = router;
 

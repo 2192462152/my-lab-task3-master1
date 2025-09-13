@@ -1,4 +1,4 @@
-import {createRouter, createWebHashHistory} from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -36,6 +36,11 @@ const router = createRouter({
             path: '/direct',
             name: 'Direct',
             component: () => import('@/views/Direct.vue'),
+        },
+        {
+            path: '/other',
+            name: 'Other',
+            component: () => import('@/views/Other.vue'),
         }
     ],
 })
