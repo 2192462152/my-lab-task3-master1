@@ -23,9 +23,22 @@ const storage = multer.diskStorage({
     },
 
     // 配置文件名
+    // filename: (req, file, cb) => {
+    //     const originalName = file.originalname; // 前端传来的原始文件名
+    //     const uniqueFileName = `${originalName}`; // 最终保存的文件名
+    //     fileName = uniqueFileName;
+    //     cb(null, uniqueFileName);
+    // }
+
     filename: (req, file, cb) => {
-        const originalName = file.originalname; // 前端传来的原始文件名
-        const uniqueFileName = `${originalName}_${dayjs().format('YYYYMMDDHHmmss')}`; // 最终保存的文件名
+        const originalName = file.originalname;
+        // 提取文件扩展名（如 .jpg .png）
+        const ext = path.extname(originalName);
+        // 提取文件名（不含扩展名）
+        const nameWithoutExt = path.basename(originalName, ext);
+        // 拼接新文件名：原名_时间戳.扩展名
+        const uniqueFileName = `${nameWithoutExt}_${dayjs().format('YYYYMMDDHHmmss')}${ext}`;
+
         fileName = uniqueFileName;
         cb(null, uniqueFileName);
     }
@@ -56,7 +69,7 @@ router.post('/uploadFile', upload.single('file'), async (ctx) => {
         const imageBuffer = fs.readFileSync(filepath);
         const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
 
-        await axios.post('http://localhost:3000/api/behaviorData/add', { d_no: '01', originalImage: base64Image, processedImage: base64Image, detectionCount: 10, results: JSON.stringify({ a: 1 }) })
+        await axios.post('http://localhost:3000/api/behaviorData/add', { d_no: '02', originalImage: base64Image, processedImage: base64Image, detectionCount: 10, results: JSON.stringify({ a: 1 }) })
 
         // 构造成功响应（返回文件信息给前端）
         ctx.status = 200; // 状态码：200 表示成功

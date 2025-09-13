@@ -160,7 +160,6 @@
               style="width: 150px; margin-right: 10px"
               @keyup.enter="fetchOperationLogs"
               clearable
-              size="small"
             />
             <el-date-picker
               v-model="logDateRange"
@@ -172,13 +171,12 @@
               value-format="YYYY-MM-DD HH:mm:ss"
               @change="fetchOperationLogs"
               style="margin-right: 10px"
-              size="small"
             />
-            <el-button type="primary" @click="fetchOperationLogs" size="small">
+            <el-button type="primary" @click="fetchOperationLogs">
               <el-icon><Search /></el-icon>
               查询
             </el-button>
-            <el-button type="danger" @click="clearLogs" size="small">
+            <el-button type="danger" @click="clearLogs">
               <el-icon><Delete /></el-icon>
               清空
             </el-button>

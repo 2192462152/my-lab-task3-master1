@@ -3,7 +3,7 @@
     <!-- 面包屑导航 -->
     <el-breadcrumb separator="/" style="margin-bottom: 20px">
       <el-breadcrumb-item @click="goBack" style="cursor: pointer"
-        >冰箱导航</el-breadcrumb-item
+        >返回</el-breadcrumb-item
       >
       <el-breadcrumb-item>{{
         roomInfo.device_name || "机房详情"
@@ -14,17 +14,17 @@
     <el-card style="margin-bottom: 20px">
       <template #header>
         <div class="card-header">
-          <span>冰箱基本信息</span>
+          <span>设备基本信息</span>
           <el-tag :type="getRoomStatusType()" size="large">
             {{ getRoomStatusText() }}
           </el-tag>
         </div>
       </template>
       <el-descriptions :column="3" border>
-        <el-descriptions-item label="冰箱名称">{{
+        <el-descriptions-item label="设备名称">{{
           roomInfo.device_name
         }}</el-descriptions-item>
-        <el-descriptions-item label="冰箱编号">{{
+        <el-descriptions-item label="设备编号">{{
           roomInfo.number
         }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{
@@ -190,17 +190,9 @@
 <script setup>
 import PowerChart from "@/components/PowerChart.vue";
 import axios from "axios";
-import { ElMessage } from "element-plus";
-import {
-  computed,
-  inject,
-  onBeforeUnmount,
-  onMounted,
-  onUnmounted,
-  ref,
-} from "vue";
+import { dayjs, ElMessage } from "element-plus";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { dayjs } from "element-plus";
 
 const $baseUrl = inject("$baseUrl");
 const $aiUrl = inject("$aiUrl");

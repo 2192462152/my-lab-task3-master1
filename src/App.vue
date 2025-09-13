@@ -24,7 +24,7 @@
             <el-icon>
               <OfficeBuilding />
             </el-icon>
-            冰箱导航
+            设备管理
           </el-menu-item>
           <el-menu-item index="3" @click="data1List">
             <el-icon>

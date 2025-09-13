@@ -2,12 +2,12 @@
   <div class="container">
     <el-card>
       <div class="header">
-        <h1>冰箱导航</h1>
+        <h1>设备管理</h1>
         <el-button type="primary" @click="showDialog">
           <el-icon :size="15" style="margin-right: 5px">
             <Plus />
           </el-icon>
-          添加冰箱
+          添加设备
         </el-button>
       </div>
 
@@ -51,7 +51,7 @@
                 详情
               </el-button>
               <el-popconfirm
-                title="确定要删除这个冰箱吗？"
+                title="确定要删除这个设备吗？"
                 @confirm="deleteRoom(room.id)"
                 @click.stop
               >
@@ -103,7 +103,7 @@
             v-for="fridgeId in ['01', '02', '03']"
             :key="fridgeId"
           >
-            <h4>{{ fridgeId }}号冰箱</h4>
+            <h4>{{ fridgeId }}号设备</h4>
             <div class="stat-details">
               <div class="stat-detail">
                 <span class="label">最高功率:</span>
@@ -166,22 +166,22 @@
 
     <!-- 添加/编辑设备对话框 -->
     <el-dialog
-      :title="isEditing ? '编辑冰箱' : '添加冰箱'"
+      :title="isEditing ? '编辑设备' : '添加设备'"
       v-model="dialogVisible"
       width="30%"
     >
       <el-form :model="form" label-width="100px">
-        <el-form-item label="冰箱名称">
-          <el-input v-model="form.device_name" placeholder="请输入冰箱名称" />
+        <el-form-item label="设备名称">
+          <el-input v-model="form.device_name" placeholder="请输入设备名称" />
         </el-form-item>
-        <el-form-item label="冰箱编号">
-          <el-input v-model="form.number" placeholder="请输入冰箱编号" />
+        <el-form-item label="设备编号">
+          <el-input v-model="form.number" placeholder="请输入设备编号" />
         </el-form-item>
         <el-form-item label="描述">
           <el-input
             v-model="form.remarks"
             type="textarea"
-            placeholder="请输入冰箱描述"
+            placeholder="请输入设备描述"
           />
         </el-form-item>
       </el-form>
